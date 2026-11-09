@@ -1,0 +1,1628 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liberar sin esperar · Propuesta de mejora</title>
+<meta name="author" content="Vanessa Serna (propuesta) · Estiven Serna (sitio)">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Liberar sin esperar · Propuesta de mejora continua">
+<meta property="og:description" content="Propuesta de Vanessa Serna para eliminar la espera en las liberaciones de Calidad, con simulador, plan de acción y herramientas de participación.">
+<meta property="og:image" content="og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="Propuesta al Censo de Oportunidades de Mejora Continua: cómo eliminar el cuello de botella en las liberaciones de Calidad, con simulador, plan de acción y herramientas de participación.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script>
+/* ===== CONFIGURACIÓN — edite solo estas líneas =====
+   backendUrl: URL de la aplicación web de Google Apps Script (ver README).
+               Vacío = los datos se guardan solo en el navegador de cada persona.
+   autor:      autora de la propuesta.
+   sitio:      autor del diseño y desarrollo del sitio. */
+window.CAMEL_CONFIG = {
+  backendUrl: "",
+  autor: "Vanessa Serna",
+  sitio: "Estiven Serna"
+};
+</script>
+<style>
+:root{
+  --ink:#141414; --ink-2:#3d3d3a; --muted:#6b6a64; --line:#d9d6cc; --line-2:#ebe8df;
+  --paper:#f6f4ee; --card:#ffffff; --yellow:#ffd500; --yellow-2:#fff3a8; --olive:#6f6c00; --olive-2:#e9e8c9;
+  --red:#b3261e; --red-2:#f6dcd9; --green:#2f6b2f; --green-2:#dcebd6;
+  --radius:10px; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --sans:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--olive);text-underline-offset:2px}
+h1,h2,h3,h4{font-stretch:88%;line-height:1.1;margin:0 0 .5em}
+h2{font-size:clamp(1.7rem,3.2vw,2.4rem);font-weight:850;letter-spacing:-.01em}
+h3{font-size:1.2rem;font-weight:750}
+h4{font-size:1rem;font-weight:700}
+p{margin:0 0 .9em}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.cite{font-size:.86em;color:var(--olive);text-decoration:none;border-bottom:1px dotted var(--olive);white-space:nowrap}
+.cite:hover{background:var(--olive-2)}
+
+/* Top nav */
+.topbar{position:sticky;top:0;z-index:50;background:var(--ink);color:#fff}
+.topbar > .wrap{display:flex;align-items:center;gap:12px;height:52px}
+.brand{color:#fff;text-decoration:none;font-weight:900;font-stretch:80%;letter-spacing:.02em;white-space:nowrap;display:flex;align-items:center;gap:8px}
+.brand i{display:inline-block;width:14px;height:14px;background:var(--yellow);border-radius:2px}
+.nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;flex:1}
+.nav::-webkit-scrollbar{display:none}
+.nav a{color:#d8d6cf;text-decoration:none;font-size:.86rem;padding:6px 10px;border-radius:6px;white-space:nowrap}
+.nav a:hover,.nav a.on{color:var(--ink);background:var(--yellow)}
+.nav .sep{width:1px;background:#444;margin:8px 6px;flex:none}
+.mode{font-size:.75rem;color:#bbb;white-space:nowrap;border:1px solid #444;border-radius:20px;padding:2px 10px}
+.mode.shared{color:var(--ink);background:var(--yellow);border-color:var(--yellow)}
+
+/* Hero */
+.hero{background:var(--yellow);border-bottom:6px solid var(--ink);position:relative;overflow:hidden}
+.hero .wrap{padding-top:56px;padding-bottom:48px;position:relative}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.hero h1{font-size:clamp(2.8rem,8vw,6rem);font-weight:900;font-stretch:78%;letter-spacing:-.02em;margin:.15em 0 .2em}
+.hero .lead{font-size:clamp(1.05rem,1.8vw,1.3rem);max-width:760px;font-weight:450}
+.hero .by{margin-top:14px;font-size:.88rem}
+.stripes{position:absolute;right:-40px;top:0;bottom:0;width:180px;background:repeating-linear-gradient(135deg,var(--ink) 0 18px,transparent 18px 36px);opacity:.9;clip-path:polygon(40% 0,100% 0,100% 100%,0 100%)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:34px;max-width:900px}
+.tile{background:var(--ink);color:#fff;border-radius:var(--radius);padding:16px 18px}
+.tile b{display:block;font-family:var(--mono);font-size:clamp(1.3rem,2.6vw,1.9rem);color:var(--yellow);font-weight:600;line-height:1.15}
+.tile span{font-size:.86rem;color:#d6d4cc}
+
+/* Sections */
+section{padding:64px 0;border-bottom:1px solid var(--line)}
+section.tool{background:#efece3}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:.75rem;background:var(--ink);color:var(--yellow);padding:2px 8px;border-radius:4px;white-space:nowrap}
+.intro{max-width:760px;font-size:1.06rem;color:var(--ink-2);margin-bottom:26px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card.dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card.dark .muted{color:#bdbbb3}
+.card h3 .n{font-family:var(--mono);color:var(--olive);margin-right:6px}
+.three .card b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--olive);margin-bottom:6px}
+blockquote{margin:0 0 22px;padding:18px 22px;background:var(--card);border-left:6px solid var(--yellow);border-radius:0 var(--radius) var(--radius) 0;font-size:1.12rem;font-style:italic}
+blockquote footer{font-style:normal;font-size:.85rem;color:var(--muted);margin-top:8px}
+.tbl{width:100%;overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line-2);vertical-align:top}
+th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;background:#faf9f5}
+tr:last-child td{border-bottom:none}
+td.r,th.r{text-align:right}
+.callout{background:var(--ink);color:#fff;border-radius:var(--radius);padding:18px 22px;margin-top:18px}
+.callout b{color:var(--yellow)}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:10px;counter-reset:s}
+.step{background:var(--card);border:1px solid var(--line);padding:16px;position:relative}
+.step:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.step:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.step+.step{border-left:none}
+.step .w{font-family:var(--mono);font-size:.78rem;color:var(--olive);font-weight:600}
+.step h4{margin:.3em 0}
+.phases{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.phase{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;border-top:6px solid var(--line)}
+.phase.done{border-top-color:var(--olive)}
+.phase.next{border-top-color:var(--yellow)}
+.phase .st{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.phase .pd{font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+
+/* Forms & tools */
+label{display:block;font-size:.84rem;font-weight:600;color:var(--ink-2);margin-bottom:4px}
+input[type=number],input[type=text],input[type=date],input[type=time],select,textarea{width:100%;font:inherit;font-size:.93rem;padding:8px 10px;border:1px solid #c9c5b8;border-radius:7px;background:#fff;color:var(--ink)}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--yellow);outline-offset:0;border-color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+.field{margin-bottom:12px}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.btn{font:inherit;font-weight:700;font-size:.9rem;border:2px solid var(--ink);background:var(--ink);color:#fff;border-radius:8px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#000}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--yellow)}
+.btn.y{background:var(--yellow);color:var(--ink)}
+.btn.sm{padding:4px 10px;font-size:.8rem}
+.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+fieldset{border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 4px;margin:0 0 14px;background:#fff}
+legend{font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;padding:0 6px}
+.hint{font-size:.78rem;color:var(--muted);margin-top:3px;line-height:1.35}
+.sim{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:22px;align-items:start}
+.sim-out{position:sticky;top:68px}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font:inherit;font-size:.82rem;border:1px solid var(--ink);background:#fff;border-radius:20px;padding:5px 12px;cursor:pointer}
+.chip.on,.chip:hover{background:var(--yellow)}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.kpi .v{font-family:var(--mono);font-size:1.45rem;font-weight:600;line-height:1.15}
+.kpi .l{font-size:.8rem;color:var(--muted)}
+.kpi.hi{background:var(--ink);color:#fff;border-color:var(--ink)}
+.kpi.hi .v{color:var(--yellow)}
+.kpi.hi .l{color:#c9c7bf}
+.kpi.warn .v{color:var(--red)}
+.chartbox{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 6px;margin-bottom:14px}
+.chartbox h4{margin-bottom:2px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--ink-2);margin:4px 0 6px}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+svg text{font-family:var(--sans);font-size:11px;fill:var(--muted)}
+.front{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line-2)}
+.front:last-child{border-bottom:none}
+.front input[type=checkbox]{width:18px;height:18px;margin-top:3px;accent-color:var(--ink)}
+.front .sub{grid-column:2;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.front .sub label{font-weight:500;font-size:.76rem}
+.front .sub input{padding:5px 8px}
+.front.off .sub{opacity:.4}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);margin-bottom:16px;flex-wrap:wrap}
+.tabs button{font:inherit;font-weight:700;font-size:.88rem;border:none;background:transparent;padding:8px 14px;cursor:pointer;border-radius:7px 7px 0 0;color:var(--ink-2)}
+.tabs button.on{background:var(--ink);color:var(--yellow)}
+.pill{display:inline-block;font-size:.74rem;font-weight:700;padding:2px 9px;border-radius:20px;background:var(--line-2);white-space:nowrap}
+.pill.ok{background:var(--green-2);color:var(--green)}
+.pill.bad{background:var(--red-2);color:var(--red)}
+.pill.y{background:var(--yellow-2);color:#5a4a00}
+.pill.dk{background:var(--ink);color:var(--yellow)}
+.gantt{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow-x:auto}
+.g-row{display:grid;grid-template-columns:230px repeat(12,minmax(34px,1fr));min-width:720px;border-bottom:1px solid var(--line-2);align-items:center}
+.g-row:last-child{border-bottom:none}
+.g-row>div{padding:6px 4px;font-size:.8rem}
+.g-head>div{font-family:var(--mono);font-size:.7rem;color:var(--muted);text-align:center}
+.g-head>div.now{background:var(--yellow);color:var(--ink);font-weight:700;border-radius:4px}
+.g-name{padding-left:12px!important;font-weight:600}
+.g-bar{height:18px;border-radius:4px;background:var(--line);margin:0 2px}
+.g-bar.Encurso{background:var(--yellow)}
+.g-bar.Hecha{background:var(--olive)}
+.g-bar.late{background:var(--red)}
+#riskTable select{min-width:92px}
+.riskgrid{display:grid;grid-template-columns:70px repeat(3,1fr);grid-template-rows:repeat(3,64px) 26px;gap:4px;max-width:420px}
+.riskgrid .ax{font-size:.72rem;color:var(--muted);display:flex;align-items:center;justify-content:center;text-align:center}
+.riskgrid .cell{border-radius:6px;display:flex;flex-wrap:wrap;gap:4px;align-content:center;justify-content:center;padding:4px}
+.riskgrid .dot{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--mono)}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quad>div{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:12px;min-height:120px}
+.quad h4{font-size:.85rem;margin-bottom:6px}
+.quad ul{margin:0;padding-left:18px;font-size:.84rem}
+.quad .qw{border-color:var(--olive);background:var(--olive-2)}
+.list-ideas .idea{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.idea .meta{font-size:.78rem;color:var(--muted);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.idea .edit{display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.comite .idea .edit{display:block}
+.bars .b{display:grid;grid-template-columns:110px 1fr 70px;gap:10px;align-items:center;margin:6px 0;font-size:.85rem}
+.bars .track{background:var(--line-2);border-radius:4px;height:22px;overflow:hidden}
+.bars .fill{height:100%;background:var(--ink)}
+.bars .fill.o{background:var(--olive)}
+.result{border-radius:var(--radius);padding:14px 16px;font-weight:700;margin-top:6px}
+.result.q{background:var(--red-2);color:var(--red)}
+.result.o{background:var(--green-2);color:var(--green)}
+.result.w{background:var(--yellow-2);color:#5a4a00}
+.checks label{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:.92rem;margin-bottom:8px}
+.checks input{width:18px;height:18px;margin-top:2px;accent-color:var(--ink);flex:none}
+.empathy{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:.9rem;transition:transform .25s;z-index:100;max-width:90vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.todo li{margin-bottom:8px}
+footer.site{padding:36px 0 60px;font-size:.85rem;color:var(--muted)}
+.src td:first-child{font-weight:600}
+.src tr:target{background:var(--yellow-2)}
+details summary{cursor:pointer;font-weight:700}
+
+/* Menú desplegable */
+.grow{flex:1}
+.navbtn{font:inherit;font-size:.88rem;font-weight:700;background:#262626;color:#fff;border:1px solid #444;border-radius:8px;padding:6px 12px;cursor:pointer;display:flex;gap:8px;align-items:center;white-space:nowrap}
+.navbtn:hover,.navbtn[aria-expanded=true]{border-color:var(--yellow)}
+.navbtn .cur{color:var(--yellow);font-weight:600;max-width:190px;overflow:hidden;text-overflow:ellipsis}
+.navbtn .cur::before{content:"·";color:#777;margin-right:8px}
+.navbtn svg{transition:transform .2s}
+.navbtn[aria-expanded=true] svg{transform:rotate(180deg)}
+.menu{position:absolute;top:52px;left:0;right:0;background:var(--ink);border-top:1px solid #333;box-shadow:0 18px 30px rgba(0,0,0,.35)}
+.menu[hidden]{display:none}
+.menu .wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;padding:22px 20px 26px}
+.menu h5{color:var(--yellow);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px;padding-left:10px}
+.menu a{display:block;color:#fff;text-decoration:none;padding:8px 10px;border-radius:7px;font-weight:700;font-size:.95rem}
+.menu a small{display:block;color:#a9a7a0;font-size:.78rem;font-weight:400}
+.menu a:hover{background:#262626}
+.menu a.on{background:#262626;box-shadow:inset 3px 0 0 var(--yellow)}
+.tourbtn{font:inherit;font-size:.86rem;font-weight:800;background:var(--yellow);color:var(--ink);border:none;border-radius:8px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+.tourbtn:hover{filter:brightness(.95)}
+/* Camel assistant (recorrido guiado) */
+#ca-shade{position:fixed;inset:0;z-index:200;display:none;background:transparent}
+#ca-shade.dim{background:rgba(15,15,15,.62)}
+#ca-ring{position:fixed;z-index:201;display:none;pointer-events:none;border:3px solid var(--yellow);border-radius:12px;box-shadow:0 0 0 6px rgba(255,213,0,.28),0 0 0 9999px rgba(15,15,15,.62);transition:top .35s ease,left .35s ease,width .35s ease,height .35s ease}
+#ca-box{position:fixed;z-index:202;display:none;width:min(390px,calc(100vw - 32px));background:var(--yellow);color:var(--ink);border-radius:12px;padding:16px 18px 14px;box-shadow:0 20px 44px rgba(0,0,0,.4);transition:top .35s ease,left .35s ease}
+#ca-box.center{top:50%!important;left:50%!important;transform:translate(-50%,-50%)}
+.ca-arrow{position:absolute;width:16px;height:16px;background:var(--yellow);transform:rotate(45deg);display:none}
+.ca-k{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.ca-k .mk{display:flex;align-items:center;gap:6px}
+.ca-k .mk i{width:9px;height:9px;background:var(--ink);border-radius:2px}
+#ca-title{font-size:1.2rem;font-weight:850;margin:.45em 0 .35em}
+#ca-text{font-size:.95rem;line-height:1.5;margin:0 0 12px}
+.ca-prog{height:4px;background:rgba(0,0,0,.15);border-radius:4px;overflow:hidden}
+.ca-prog i{display:block;height:100%;background:var(--ink);transition:width .3s}
+.ca-btns{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}
+.ca-btns > div{display:flex;gap:6px}
+#ca-box button{font:inherit;font-size:.86rem;font-weight:800;border-radius:8px;padding:7px 12px;cursor:pointer}
+#ca-next{background:var(--ink);color:var(--yellow);border:2px solid var(--ink)}
+#ca-prev{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+#ca-skip{background:transparent;border:none!important;padding:7px 2px!important;text-decoration:underline;color:var(--ink)}
+.ca-help{margin-left:auto;align-self:center;font:inherit;font-size:.8rem;font-weight:700;background:var(--yellow);color:var(--ink);border:none;border-radius:20px;padding:5px 12px 5px 6px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.ca-help span{display:inline-flex;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--yellow);align-items:center;justify-content:center;font-size:.78rem}
+@media (max-width:900px){
+  .grid2,.grid3,.sim,.tiles{grid-template-columns:1fr}
+  .sim-out{position:static}
+  .steps{grid-template-columns:1fr 1fr}
+  .step{border:1px solid var(--line)!important;border-radius:0!important}
+  .phases{grid-template-columns:1fr 1fr}
+  .stripes{width:90px;opacity:.5}
+  .mode{display:none}
+  .menu .wrap{grid-template-columns:1fr 1fr}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px}
+  .steps,.phases,.empathy,.quad,.kpis{grid-template-columns:1fr}
+  .brand span{display:none}
+  .stripes{display:none}
+  .navbtn .cur{display:none}
+  .menu .wrap{grid-template-columns:1fr;max-height:calc(100vh - 52px);overflow-y:auto;gap:10px}
+  .ca-help{margin-left:0}
+  #ca-box{left:16px!important;right:16px;top:auto!important;bottom:16px;width:auto}
+  #ca-box.center{top:auto!important;left:16px!important;transform:none}
+  .ca-arrow{display:none!important}
+  section{padding:44px 0}
+}
+@media print{
+  body.print-tpl > *:not(#printArea){display:none!important}
+  body.print-tpl #printArea{display:block!important}
+  #printArea{display:none}
+  #printArea h2{font-size:20pt}
+  #printArea .pbox{border:1px solid #999;padding:8px;margin-bottom:8px;min-height:50px;white-space:pre-wrap}
+}
+/* ================= REDISEÑO v3: zonas, herramientas, movimiento ================= */
+section.summary{background:#fff;padding:56px 0}
+section.alt{background:#fff}
+section.alt .card:not(.dark),section.alt .step,section.alt .phase{background:#f8f6f0}
+.zone-label{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.74rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--olive);margin-bottom:16px}
+.zone-label::before{content:"";width:26px;height:3px;background:currentColor;border-radius:2px}
+.zone-label.dark{color:var(--yellow);justify-content:center}
+@media (min-width:901px){
+  .three .card{position:relative}
+  .three .card:not(:last-child)::after{content:"→";position:absolute;right:-9px;top:50%;transform:translate(50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:800;z-index:2}
+}
+/* Héroe: cuadrícula + foco de luz + llamado */
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,0,0,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.07) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at 30% 40%,#000 20%,transparent 72%);mask-image:radial-gradient(ellipse at 30% 40%,#000 20%,transparent 72%);pointer-events:none}
+.spotlight{position:absolute;top:-30%;left:10%;width:84%;height:169%;pointer-events:none;opacity:0;animation:spot 2s ease .6s forwards;z-index:1}
+@keyframes spot{0%{opacity:0;transform:translate(-72%,-62%) scale(.5)}100%{opacity:1;transform:translate(-50%,-40%) scale(1)}}
+.hero .wrap{z-index:2}
+.hero-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.hero-cta .btn{padding:11px 18px;font-size:.95rem}
+.hero-cta .btn.ghost{border-color:var(--ink)}
+/* Borde en movimiento */
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.mb{position:relative;isolation:isolate;background:transparent!important;border-color:transparent!important}
+.mb::before{content:"";position:absolute;inset:-2px;border-radius:10px;background:conic-gradient(from var(--ang),transparent 0 62%,var(--mbc,#fff) 78%,transparent 92%);animation:mbspin 3.2s linear infinite;z-index:-1}
+.mb::after{content:"";position:absolute;inset:1px;border-radius:7px;background:var(--mbf,var(--ink));z-index:-1}
+.tourbtn.mb{--mbf:var(--yellow);--mbc:#fff;color:var(--ink)}
+@keyframes mbspin{to{--ang:360deg}}
+/* Texto que aparece */
+.tgw{display:inline-block;opacity:0;filter:blur(10px);transform:translateY(6px);animation:tgw .7s ease forwards;animation-delay:calc(var(--b,0ms) + var(--i) * var(--s,90ms))}
+@keyframes tgw{to{opacity:1;filter:none;transform:none}}
+/* Aparición al desplazarse */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1);transition-delay:var(--d,0ms)}
+.rv.in{opacity:1;transform:none}
+/* Brillo que sigue al cursor */
+@media (hover:hover){
+  .glow{position:relative;overflow:hidden}
+  .glow::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(260px circle at var(--mx,-300px) var(--my,-300px),var(--glc,rgba(255,213,0,.24)),transparent 62%);opacity:0;transition:opacity .3s;z-index:0}
+  .glow:hover::before{opacity:1}
+  .glow>*{position:relative;z-index:1}
+}
+/* Barra de progreso de lectura */
+#progress{position:fixed;top:52px;left:0;right:0;height:3px;background:var(--yellow);transform-origin:0 50%;transform:scaleX(0);z-index:49;pointer-events:none}
+/* Zona de herramientas */
+.zone-tools{background:#121212;padding-bottom:48px}
+.zone-banner{background:#121212;color:#fff;border:none!important;padding:0 0 40px!important;position:relative;overflow:hidden}
+.zone-banner h2{color:#fff;text-align:center;font-size:clamp(2rem,4.4vw,3.2rem)}
+.zone-banner .intro{color:#c9c7bf;text-align:center;margin:0 auto 34px}
+.lamp{position:relative;height:150px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 40%,transparent);mask-image:linear-gradient(#000 40%,transparent)}
+.lamp .l,.lamp .r{position:absolute;top:0;height:150px;width:var(--lw,9rem);transition:width 1.1s cubic-bezier(.2,.7,.2,1) .15s}
+.lamp .l,.lamp .r{background:conic-gradient(from 180deg at 100% 0%,rgba(255,213,0,.8) 0deg,rgba(255,213,0,.25) 34deg,transparent 64deg,transparent 360deg)}
+.lamp .l{right:50%}
+.lamp .r{left:50%;transform:scaleX(-1)}
+.lamp .glow2{position:absolute;left:50%;top:-40px;transform:translateX(-50%);width:var(--gw,8rem);height:90px;background:rgba(255,213,0,.6);filter:blur(40px);border-radius:50%;transition:width 1.1s .15s}
+.lamp .line{position:absolute;left:50%;top:0;transform:translateX(-50%);height:3px;width:var(--lw2,9rem);background:var(--yellow);box-shadow:0 0 22px 2px var(--yellow);transition:width 1.1s .15s}
+.lamp.in{--lw:min(30rem,48vw);--lw2:min(34rem,92vw);--gw:min(28rem,80vw)}
+.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.bento a{display:flex;flex-direction:column;gap:6px;min-height:176px;padding:20px;border-radius:16px;background:#1c1c1c;border:1px solid #2d2d2d;color:#fff;text-decoration:none;box-shadow:inset 0 3px 0 var(--acc);transition:transform .25s,border-color .25s;--glc:color-mix(in srgb,var(--acc) 30%,transparent)}
+.bento a:hover{transform:translateY(-4px);border-color:var(--acc)}
+.bento .bn{font-family:var(--mono);color:var(--acc);font-size:1.7rem;font-weight:600;line-height:1}
+.bento b{font-size:1.2rem;font-stretch:90%}
+.bento span{color:#bdbbb3;font-size:.9rem;line-height:1.45}
+.bento i{margin-top:auto;font-style:normal;color:var(--acc);font-weight:700;font-size:.86rem}
+.bento .w2{grid-column:span 2}
+.datanote{color:#9d9b94;text-align:center;margin:22px auto 0;max-width:720px}
+section.tool{background:transparent!important;border:none;padding:22px 0}
+.toolframe{background:var(--paper);border-radius:18px;box-shadow:0 0 0 1px rgba(255,255,255,.06),0 26px 60px rgba(0,0,0,.5)}
+.tf-head{background:var(--acc);color:var(--ink);padding:26px 28px 22px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;position:relative;overflow:hidden;border-radius:18px 18px 0 0}
+.tf-head::after{content:"";position:absolute;right:-70px;top:0;bottom:0;width:240px;background:repeating-linear-gradient(135deg,rgba(0,0,0,.09) 0 14px,transparent 14px 28px);pointer-events:none}
+.tf-num{font-family:var(--mono);font-size:clamp(2.6rem,6vw,4.4rem);font-weight:600;line-height:.85;letter-spacing:-.05em;position:relative;z-index:1}
+.tf-txt{position:relative;z-index:1;min-width:0}
+.tf-head .sec-head{margin-bottom:8px}
+.tf-head .sec-head h2{margin:0}
+.tf-head .tag{background:var(--ink);color:var(--acc)}
+.tf-head .intro{color:var(--ink);margin-bottom:14px;font-size:1rem}
+.tf-head .ca-help{background:var(--ink);color:var(--acc)}
+.tf-head .ca-help span{background:var(--acc);color:var(--ink)}
+.how{list-style:none;margin:0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.how li{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.6);border:1px solid rgba(0,0,0,.12);border-radius:30px;padding:5px 14px 5px 5px;font-size:.84rem;font-weight:600}
+.how li b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--acc);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.76rem}
+.tf-body{padding:26px 28px 30px}
+section[data-acc="1"],.acc1{--acc:#FFD500}
+section[data-acc="2"],.acc2{--acc:#5CC8C2}
+section[data-acc="3"],.acc3{--acc:#FFA24C}
+section[data-acc="4"],.acc4{--acc:#B7A4FF}
+section[data-acc="5"],.acc5{--acc:#FF7E6E}
+section[data-acc="6"],.acc6{--acc:#A2D77F}
+.tf-body .kpi.hi .v{color:var(--acc)}
+.tf-body .tabs button.on{color:var(--acc)}
+.tf-body .btn.y{background:var(--acc);border-color:var(--ink)}
+.tf-body .chip.on,.tf-body .chip:hover{background:var(--acc)}
+/* Cierre */
+#pedido{background:var(--yellow);border:none}
+#pedido .zone-label{color:var(--ink)}
+#pedido .intro{color:var(--ink)}
+#documentacion{background:#fff}
+footer.site{background:var(--ink);color:#a9a7a0}
+footer.site p{max-width:760px}
+footer.site .credits{color:#fff;font-size:.95rem;padding-bottom:14px;border-bottom:1px solid #2d2d2d;margin-bottom:16px;max-width:none}
+footer.site .credits b{color:var(--yellow);font-weight:700}
+.hero .by b{font-weight:800}
+/* Acordeones del simulador */
+details.acc{background:#fff;border:1px solid var(--line);border-radius:var(--radius);margin:0 0 14px}
+details.acc>summary{list-style:none;cursor:pointer;padding:14px 44px 14px 16px;font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;position:relative}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary small{display:block;text-transform:none;letter-spacing:0;font-weight:500;font-size:.82rem;color:var(--muted);margin-top:2px}
+details.acc>summary::after{content:"+";position:absolute;right:16px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem}
+details.acc[open]>summary::after{content:"–"}
+details.acc>fieldset{border:none;border-top:1px solid var(--line-2);border-radius:0;margin:0;padding-top:12px}
+details.acc>fieldset>legend{display:none}
+/* Retroalimentación y restricciones */
+input.bad{border-color:var(--red)!important;background:var(--red-2)}
+.errmsg{color:var(--red)!important;font-weight:600}
+.kpi.flash{animation:kflash .9s ease}
+@keyframes kflash{0%{box-shadow:0 0 0 3px var(--acc,var(--yellow))}100%{box-shadow:0 0 0 0 transparent}}
+.simbar{position:fixed;left:10px;right:10px;bottom:10px;z-index:60;background:var(--ink);color:#fff;border-radius:14px;padding:10px 10px 10px 14px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:center;box-shadow:0 14px 34px rgba(0,0,0,.4);transform:translateY(150%);transition:transform .3s ease;border-top:3px solid var(--yellow)}
+.simbar.show{transform:none}
+.simbar span{display:block;font-size:.62rem;color:#a9a7a0;text-transform:uppercase;letter-spacing:.06em}
+.simbar b{font-family:var(--mono);color:var(--yellow);font-size:.84rem;font-weight:600;white-space:nowrap}
+.simbar button{background:var(--yellow);color:var(--ink);border:none;border-radius:9px;font-weight:800;width:44px;height:44px;font-size:1.1rem;cursor:pointer}
+@media (min-width:901px){.simbar{display:none}}
+.g-name{position:sticky;left:0;background:#fff;z-index:2}
+.swipe{display:none}
+/* Tablas apiladas en móvil */
+@media (max-width:640px){
+  .tbl.stack{background:transparent;border:none;overflow:visible}
+  .tbl.stack table,.tbl.stack tbody,.tbl.stack tr,.tbl.stack td{display:block;width:100%}
+  .tbl.stack thead{display:none}
+  .tbl.stack tr{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:8px 2px}
+  .tbl.stack td{border:none;padding:6px 12px;display:grid;grid-template-columns:34% 1fr;gap:10px;align-items:start;text-align:left!important}
+  .tbl.stack td::before{content:attr(data-label);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:3px}
+  .tbl.stack td:first-child{grid-template-columns:1fr;font-size:1rem;font-weight:700;padding-bottom:4px}
+  .tbl.stack td:first-child::before,.tbl.stack td[data-label=""]::before{display:none}
+  .tbl.stack td[data-label=""]{grid-template-columns:1fr}
+  .tbl.stack td[colspan]{grid-template-columns:1fr}
+  .tbl.stack td[colspan]::before{display:none}
+  .swipe{display:block}
+}
+@media (max-width:900px){
+  input[type=number],input[type=text],input[type=date],input[type=time],select,textarea{font-size:16px}
+  .front{min-height:44px}
+  .front input[type=checkbox],.checks input,#p_incMaq,#comiteToggle,#planStrats input{width:22px!important;height:22px!important}
+  .checks label,#planStrats label{min-height:40px;padding:4px 0}
+  .ca-help{padding:8px 14px 8px 8px;font-size:.84rem}
+  .bento{grid-template-columns:1fr 1fr}
+  .sim-out{margin-top:4px}
+}
+@media (max-width:560px){
+  .btn{white-space:normal}
+  .tf-head{grid-template-columns:1fr;gap:4px;padding:20px 18px 18px;border-radius:14px 14px 0 0}
+  .tf-num{font-size:2.4rem}
+  .tf-head::after{width:120px}
+  .tf-body{padding:18px 14px 22px}
+  .toolframe{border-radius:14px}
+  section.tool .wrap,.zone-banner .wrap{padding:0 10px}
+  .bento{grid-template-columns:1fr}
+  .bento .w2{grid-column:auto}
+  .bento a{min-height:0}
+  .how li{font-size:.8rem}
+  .hero-cta .btn{flex:1 1 auto;text-align:center}
+  .g-row{grid-template-columns:140px repeat(12,36px);min-width:0}
+  .g-name{font-size:.74rem!important}
+  .lamp{height:110px}
+  section.summary{padding:40px 0}
+  .kpi .v{font-size:1.12rem}
+  .kpis{grid-template-columns:1fr 1fr!important}
+  .kpis>*{min-width:0}
+  .kpi-wide{grid-column:1/-1}
+  .kpi{padding:10px 12px}
+  #iEmp{font-size:16px!important}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rv{opacity:1!important;transform:none!important}
+  .tgw{opacity:1!important;filter:none!important;transform:none!important}
+  .spotlight{opacity:1}
+}
+@media print{
+  .rv{opacity:1!important;transform:none!important}
+  .zone-tools,.zone-banner{background:#fff!important}
+  .simbar,#progress,.spotlight,.lamp{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar" id="topbar">
+  <div class="wrap">
+    <a class="brand" href="#top"><i></i><span>Liberar sin esperar</span></a>
+    <button class="navbtn" id="navBtn" type="button" aria-expanded="false" aria-controls="menu"><span>Secciones</span><span class="cur" id="navCur">Inicio</span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+    <span class="grow"></span>
+    <span class="mode" id="modeBadge">Datos en este navegador</span>
+    <button class="tourbtn mb" id="tourBtn" type="button">Recorrido guiado</button>
+  </div>
+  <div class="menu" id="menu" hidden>
+    <div class="wrap">
+      <div><h5>La propuesta</h5>
+        <a href="#top">Inicio<small>Datos clave y resumen</small></a>
+        <a href="#problema">Problema<small>Qué pasa hoy y por qué</small></a>
+        <a href="#solucion">Solución<small>Tres frentes y piloto mínimo</small></a>
+        <a href="#mas-alla">Más allá<small>Participación, datos e IA</small></a>
+        <a href="#metodo">Método<small>Design Thinking + PHVA</small></a>
+      </div>
+      <div><h5>Herramientas</h5>
+        <a href="#herramientas">Vista general<small>Las seis herramientas en un vistazo</small></a>
+        <a href="#simulador">Simulador<small>Costos y proyecciones a su medida</small></a>
+        <a href="#plan">Plan de acción<small>Tareas, cumplimiento y riesgos</small></a>
+        <a href="#linea-base">Línea base<small>Tiempos reales, antes y después</small></a>
+        <a href="#mejoras">Mejoras<small>Ideas de todos y análisis con IA</small></a>
+        <a href="#riesgo">Liberación por riesgo<small>Quién libera cada referencia</small></a>
+        <a href="#plantillas">Plantillas<small>Empatía, 5 porqués y A3</small></a>
+      </div>
+      <div><h5>Cierre</h5>
+        <a href="#pedido">Lo que se pide<small>Próximos pasos y apoyo externo</small></a>
+        <a href="#documentacion">Documentación<small>Fuentes con autor y año</small></a>
+        <button class="tourbtn" type="button" data-ca-start style="margin:14px 0 0 10px">Ver el recorrido guiado</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="hero" id="top">
+  <div class="hero-grid" aria-hidden="true"></div>
+  <svg class="spotlight" viewBox="0 0 3787 2842" fill="none" aria-hidden="true"><g filter="url(#spf)"><ellipse cx="1924.71" cy="273.501" rx="1924.71" ry="273.501" transform="matrix(-0.822377 -0.568943 -0.568943 0.822377 3631.88 2291.09)" fill="white" fill-opacity="0.55"></ellipse></g><defs><filter id="spf" x="0.86" y="0.84" width="3785.16" height="2840.26" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="bg"></feFlood><feBlend mode="normal" in="SourceGraphic" in2="bg" result="shape"></feBlend><feGaussianBlur stdDeviation="151"></feGaussianBlur></filter></defs></svg>
+  <div class="stripes" aria-hidden="true"></div>
+  <div class="wrap">
+    <div class="kicker">Censo de Oportunidades de Mejora Continua · Propuesta</div>
+    <h1>Liberar sin esperar</h1>
+    <p class="lead">Calidad libera primera pieza, materia prima y certificados con una sola persona por turno. Esta propuesta reparte esa carga sin bajar el aseguramiento de calidad, y trae las herramientas para medirla, probarla y escalarla al ritmo de la empresa.</p>
+    <div class="hero-cta"><button class="btn mb" type="button" data-ca-start>Ver el recorrido guiado</button><a class="btn ghost" href="#herramientas">Ir a las herramientas</a></div>
+    <div class="by" id="byline">Propuesta de <b>Vanessa Serna</b> · Sitio creado por <b>Estiven Serna</b> · Noviembre de 2026</div>
+    <div class="tiles">
+      <div class="tile"><b id="tH">132 h</b><span>de máquina perdidas al año por cada máquina que espera <span id="tHm">15</span> min al arranque</span></div>
+      <div class="tile"><b id="tC">≈ COP 31,7 M</b><span>al año cuesta la espera en el escenario del simulador (<span id="tCm">3</span> máquinas)</span></div>
+      <div class="tile"><b>6 sem · 1 máq.</b><span>piloto mínimo con el personal actual, sin contratar</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="resumen" class="summary">
+  <div class="wrap">
+    <div class="zone-label">En resumen</div>
+    <div class="grid3 three">
+      <div class="card"><b>Problema</b>Toda liberación pasa por una persona que debe estar presente y diligenciar papeles. Las máquinas esperan al arrancar y las rondas en proceso no alcanzan a hacerse.</div>
+      <div class="card"><b>Propuesta</b>Un piloto de 6 semanas en una sola máquina, con el personal que ya existe: operario certificado, galgas y registro digital. Se mide el antes y el después.</div>
+      <div class="card"><b>Diferencial</b>No es solo un diagnóstico: el simulador se ajusta a cada área, las recomendaciones se vuelven un plan medible y el Censo pasa a ser un sistema permanente de mejora.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEMA -->
+<section id="problema">
+  <div class="wrap">
+    <div class="zone-label">Parte 1 · La propuesta</div>
+    <div class="sec-head"><span class="tag">01 · Empatizar y definir</span><h2>El problema</h2></div>
+    <p class="intro">Hay dos personas en Calidad, una por turno, para todas las máquinas y procesos. Toda liberación depende de que esa persona esté presente.</p>
+    <blockquote>“Para que las máquinas puedan arrancar el proceso en cada turno primero debe haber una liberación… la persona que encendió su máquina primero o cuya máquina es más rápida tiene prioridad, y los otros solo deben esperar.”<footer>Operaria de planta, testimonio de la fase de empatía</footer></blockquote>
+    <div class="tbl stack">
+      <table>
+        <thead><tr><th>Dónde se atasca</th><th>Qué pasa hoy</th><th>Efecto</th></tr></thead>
+        <tbody>
+          <tr><td><b>Inicio de turno</b></td><td>Cada máquina espera la liberación de su primera pieza, en orden de llegada</td><td>Máquinas paradas y arranque desordenado</td></tr>
+          <tr><td><b>Materia prima</b></td><td>Cada lote se mide contra plantilla y se certifica a mano; llega material para varias máquinas a la vez</td><td>El material espera si Calidad está en otro punto</td></tr>
+          <tr><td><b>Certificados</b></td><td>Se transcriben a mano datos que ya se midieron</td><td>Tiempo de Calidad gastado en papeleo</td></tr>
+          <tr><td><b>Rondas en proceso</b></td><td>No alcanza el tiempo para verificar estándares en los puestos</td><td>Menos control preventivo</td></tr>
+          <tr><td><b>Consultas</b></td><td>El operario va al laboratorio y no encuentra a nadie; no hay canal para llamar</td><td>Dudas sin resolver y desplazamientos</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout"><b>Causa de fondo.</b> El proceso está diseñado para <i>inspeccionar al final</i>, no para <i>prevenir en la fuente</i>. No distingue una referencia nueva de una repetitiva y estable, y la espera no se mide, así que no aparece en ningún indicador.</div>
+    <div class="grid3" style="margin-top:18px">
+      <div class="card"><h4>Crece con la empresa</h4><p class="small">La Visión 2030 busca duplicar ventas cada cuatro años <a class="cite" href="#f-camel">(Autoindustrial Camel, s. f.)</a> y las ventas crecieron 20,34 % en 2025 <a class="cite" href="#f-emis">(EMIS, 2026)</a>. Las liberaciones crecen al mismo ritmo; Calidad no.</p></div>
+      <div class="card"><h4>Contratar no basta</h4><p class="small">Un tercer inspector cuesta unos COP 34 millones al año <a class="cite" href="#f-indeed">(Indeed, 2026)</a>. Alivia, pero mantiene la dependencia de una persona y vuelve a saturarse con el crecimiento.</p></div>
+      <div class="card"><h4>Ya está en la política</h4><p class="small">La política de calidad pide “participación activa y efectiva de cada persona” y mejora “mediante el ciclo PHVA” <a class="cite" href="#f-camel">(Autoindustrial Camel, s. f.)</a>. La propuesta aplica lo que la empresa ya declara.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUCION -->
+<section id="solucion" class="alt">
+  <div class="wrap">
+    <div class="sec-head"><span class="tag">02 · Idear</span><h2>La solución: tres frentes y un piloto</h2></div>
+    <p class="intro">Calidad deja de ser el único punto de paso y pasa de <i>liberar todo</i> a <i>auditar y prevenir</i>.</p>
+    <div class="grid3">
+      <div class="card"><h3><span class="n">1</span>Repartir la liberación</h3><p class="small">Arranque escalonado según el programa, no por orden de llegada. Liberación por riesgo: las referencias nuevas o con cambio de troquel las libera Calidad; las repetitivas y estables, un operario certificado, con auditoría posterior. Galgas pasa/no pasa y una hoja estándar con fotos para las cotas críticas.</p><span class="pill">Costo bajo</span></div>
+      <div class="card"><h3><span class="n">2</span>Digitalizar el registro</h3><p class="small">Un formulario con las cotas precargadas (Forms, Power Apps o AppSheet) que genera el certificado solo. Calibradores conectados que pasan la medida sin transcribir, desde unos USD 290 por instrumento <a class="cite" href="#f-judge">(Judge Tool, 2026)</a>. Canal de llamado a Calidad con fila visible.</p><span class="pill">Costo bajo a medio</span></div>
+      <div class="card"><h3><span class="n">3</span>Recepción por niveles</h3><p class="small">Certificado del proveedor por lote y muestreo según NTC-ISO 2859-1 <a class="cite" href="#f-icontec">(ICONTEC)</a>. Inspección reducida para proveedores con historial estable, que vuelve a normal ante cualquier rechazo.</p><span class="pill">Costo casi nulo</span></div>
+    </div>
+    <p class="small muted" style="margin-top:14px"><b>Evidencia.</b> En casos documentados por Darchem, Hartwell y FARO, digitalizar la inspección de primera pieza redujo su tiempo entre 50 % y 98 % <a class="cite" href="#f-fai">(casos comerciales)</a>. Son sectores más exigentes, así que se toman como techo, no como promesa. En Colombia, Fábricas de Productividad redujo 31,8 % los tiempos sin valor agregado en su línea de productividad operacional <a class="cite" href="#f-cp">(Colombia Productiva, 2022)</a>.</p>
+
+    <h3 style="margin-top:34px">Piloto mínimo: 6 semanas, 1 máquina, sin contratar</h3>
+    <p class="small">Una máquina de alto volumen y una referencia repetitiva, con los dos inspectores actuales, dos operarios (uno por turno) y un coordinador. El equipo se limita a una galga pasa/no pasa y un calibrador conectado.</p>
+    <div class="steps">
+      <div class="step"><div class="w">SEMANAS 1–2</div><h4>Línea base</h4><p class="small">Hora de pieza lista, hora de liberación y motivo de la espera. El inspector anota cuántas máquinas esperan al arranque.</p></div>
+      <div class="step"><div class="w">SEMANA 3</div><h4>Orden y llamado</h4><p class="small">Arranque escalonado, canal de llamado a Calidad y galga para la referencia piloto.</p></div>
+      <div class="step"><div class="w">SEMANAS 4–5</div><h4>Certificar y digitalizar</h4><p class="small">Certificación de los dos operarios y formulario con certificado automático.</p></div>
+      <div class="step"><div class="w">SEMANA 6</div><h4>Evaluar</h4><p class="small">Comparar con la línea base y decidir si se amplía a una segunda máquina, se ajusta o se descarta.</p></div>
+    </div>
+    <p class="small" style="margin-top:14px"><b>Escalar por pasos.</b> Cada máquina que se suma repite el esquema, con un operario certificado por turno. El <a href="#simulador">simulador</a> recalcula el costo y el beneficio con cada máquina agregada.</p>
+  </div>
+</section>
+
+<!-- MAS ALLA -->
+<section id="mas-alla">
+  <div class="wrap">
+    <div class="sec-head"><span class="tag">03 · Más allá</span><h2>Del Censo a un sistema permanente de mejora</h2></div>
+    <p class="intro">El Censo recoge problemas una vez. La propuesta es que se vuelva un sistema continuo: cualquier persona reporta, la idea se prioriza con datos, recibe respuesta rápida y su resultado se mide.</p>
+    <div class="grid3">
+      <div class="card">
+        <h3><span class="n">A</span>Participación de todos</h3>
+        <p class="small">Tarjeta de mejora con problema, idea y responsable, y respuesta en máximo 7 días. Tablero visible, recorrido semanal por la planta y reconocimiento mensual.</p>
+        <p class="small">Lo que funciona es la respuesta rápida, no los premios grandes. Los buzones tradicionales implementan solo entre 2 % y 5 % de las ideas <a class="cite" href="#f-graban">(Graban, 2026)</a>. Toyota recibió 14,4 ideas por persona en 2023, con premios de 500 a 2.000 yenes <a class="cite" href="#f-graban">(Toyota Times, citado por Graban, 2026)</a>. Un sistema de alto desempeño implementa 12 o más ideas por persona al año <a class="cite" href="#f-rs">(Robinson y Schroeder, 2004)</a>.</p>
+        <p class="small">Camel ya tiene antecedente: participó en convenciones Kaizen de proveedores entre 2001 y 2004 <a class="cite" href="#f-camel">(Autoindustrial Camel, s. f.)</a>.</p>
+      </div>
+      <div class="card">
+        <h3><span class="n">B</span>Decidir con datos cualitativos y cuantitativos</h3>
+        <ol class="small" style="padding-left:18px;margin:0">
+          <li><b>Lo cualitativo</b> (Censo, entrevistas, observación) genera hipótesis y dice qué medir.</li>
+          <li><b>Lo cuantitativo</b> (tiempos, no conformes, disponibilidad de máquina) las confirma y dimensiona el beneficio.</li>
+          <li>Cada decisión queda en una <b>hoja A3</b> con ambas evidencias.</li>
+          <li>Después de implementar se <b>vuelve a escuchar</b> a las personas, para ver lo que los números no muestran.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3><span class="n">C</span>IA aplicada, con revisión humana</h3>
+        <ul class="small" style="padding-left:18px;margin:0 0 10px">
+          <li><b>Ya:</b> agrupar por temas las respuestas del Censo y las ideas (herramienta en <a href="#mejoras">Mejoras</a>).</li>
+          <li><b>Después del piloto:</b> un asistente que responde dudas sobre tolerancias y fichas, y redacta borradores de certificados que Calidad revisa y firma.</li>
+          <li><b>Con meses de datos:</b> detección de desviaciones y visión artificial, idealmente con el SENA o una universidad.</li>
+        </ul>
+        <p class="small">El 42 % de las empresas colombianas usa IA, pero solo el 18 % tiene una estrategia y el 74 % se queda en usos básicos <a class="cite" href="#f-aws">(Strand Partners para AWS, 2026)</a>. Aplicarla a un problema concreto de planta pone a la empresa por delante del promedio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METODO -->
+<section id="metodo" class="alt">
+  <div class="wrap">
+    <div class="sec-head"><span class="tag">04 · Validación</span><h2>Design Thinking + PHVA</h2></div>
+    <p class="intro">Design Thinking sirve para entender el problema y probar soluciones; el PHVA que ya usa la empresa, para estandarizarlas. Testani documenta esta integración con Lean Six Sigma <a class="cite" href="#f-testani">(Testani, 2021)</a>.</p>
+    <div class="phases">
+      <div class="phase done"><div class="st">1 · Empatizar</div><div class="pd">PHVA: Planear</div><p class="small">Testimonio de una operaria y mapa de empatía.</p><span class="pill ok">Hecho</span> <span class="small muted">faltan 5 a 8 entrevistas, incluido Calidad</span></div>
+      <div class="phase done"><div class="st">2 · Definir</div><div class="pd">PHVA: Planear</div><p class="small">Pregunta de diseño, causas y costo de la espera.</p><span class="pill ok">Hecho</span> <span class="small muted">falta la línea base real</span></div>
+      <div class="phase next"><div class="st">3 · Idear</div><div class="pd">PHVA: Planear</div><p class="small">Tres frentes; validar con operarios e inspectores.</p><span class="pill y">Por validar</span></div>
+      <div class="phase"><div class="st">4 · Prototipar</div><div class="pd">PHVA: Hacer</div><p class="small">Piloto en 1 máquina y 1 referencia.</p><span class="pill">Semanas 3–5</span></div>
+      <div class="phase"><div class="st">5 · Evaluar</div><div class="pd">PHVA: Verificar y Actuar</div><p class="small">Antes y después, retroalimentación y hoja A3.</p><span class="pill">Semana 6</span></div>
+    </div>
+    <div class="callout"><b>Pregunta de diseño:</b> ¿cómo podríamos garantizar que cada máquina arranque con una pieza validada y cada lote se libere sin esperas, sin depender de que una sola persona esté en todos los puntos y sin bajar el aseguramiento de calidad?</div>
+  </div>
+</section>
+
+<div class="zone-tools">
+<section id="herramientas" class="zone-banner">
+  <div class="lamp" aria-hidden="true"><span class="l"></span><span class="r"></span><span class="glow2"></span><span class="line"></span></div>
+  <div class="wrap">
+    <div class="zone-label dark">Parte 2 · Herramientas</div>
+    <h2>Herramientas para ponerlo en marcha</h2>
+    <p class="intro">Hasta aquí, la propuesta. Desde aquí, la página sirve para trabajar. Cada herramienta tiene un número, un color y tres pasos de uso, y se puede abrir en cualquier orden.</p>
+    <div class="bento">
+      <a href="#simulador" class="acc1 w2"><span class="bn">01</span><b>Simulador</b><span>Calcule el costo de la espera, el ahorro y la proyección hasta 2030 con los datos de su área.</span><i>Abrir →</i></a>
+      <a href="#plan" class="acc2"><span class="bn">02</span><b>Plan de acción</b><span>Tareas con responsable, fecha, cumplimiento y riesgos.</span><i>Abrir →</i></a>
+      <a href="#linea-base" class="acc3"><span class="bn">03</span><b>Línea base</b><span>Tiempos reales de espera, antes y después.</span><i>Abrir →</i></a>
+      <a href="#mejoras" class="acc4 w2"><span class="bn">04</span><b>Mejoras</b><span>Cualquier persona aporta ideas; el comité evalúa y responde en máximo 7 días.</span><i>Abrir →</i></a>
+      <a href="#riesgo" class="acc5"><span class="bn">05</span><b>Liberación por riesgo</b><span>Quién libera cada referencia, con cinco preguntas.</span><i>Abrir →</i></a>
+      <a href="#plantillas" class="acc6"><span class="bn">06</span><b>Plantillas</b><span>Mapa de empatía, 5 porqués y hoja A3.</span><i>Abrir →</i></a>
+    </div>
+    <p class="small datanote" id="dataNote"></p>
+  </div>
+</section>
+<!-- SIMULADOR -->
+<section id="simulador" class="tool" data-acc="1">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">01</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 1 · Calcular</span><h2>Simulador de escenarios</h2></div>
+    <p class="intro">Cambie los valores por los de su área. Los cálculos, la proyección hasta 2030 y el plan de acción se actualizan al instante. Los valores iniciales son el escenario mínimo; todos son supuestos que hay que confirmar.</p><ol class="how"><li><b>1</b>Elija un escenario</li><li><b>2</b>Ajuste los datos de su área</li><li><b>3</b>Revise y comparta el resultado</li></ol></div></div><div class="tf-body">
+    <div class="presets" id="presets">
+      <button class="chip" data-preset="piloto">Piloto: 1 máquina</button>
+      <button class="chip" data-preset="minimo">Mínimo: 3 máquinas</button>
+      <button class="chip" data-preset="planta">Planta: 10 máquinas, 20 min</button>
+      <button class="chip" id="shareBtn" title="Copia un enlace que abre la página con estos valores">Copiar enlace con este escenario</button>
+    </div>
+    <div class="sim">
+      <div class="sim-in" id="simIn">
+        <fieldset><legend>Datos básicos</legend>
+          <div class="row">
+            <div class="field"><label for="p_espera">Espera por máquina (min)</label><input type="number" id="p_espera" min="0" step="1"><div class="hint">Promedio por arranque. Se puede tomar de la <a href="#linea-base">línea base</a>.</div></div>
+            <div class="field"><label for="p_maquinas">Máquinas que esperan al arranque</label><input type="number" id="p_maquinas" min="0" step="1"></div>
+            <div class="field"><label for="p_turnos">Turnos por día</label><input type="number" id="p_turnos" min="1" max="3" step="1"></div>
+            <div class="field"><label for="p_dias">Días hábiles al mes</label><input type="number" id="p_dias" min="1" max="31" step="1"></div>
+            <div class="field"><label for="p_inspectores">Inspectores por turno</label><input type="number" id="p_inspectores" min="0.5" step="0.5"></div>
+          </div>
+        </fieldset>
+        <details class="acc"><summary>Tiempos de Calidad<small>Minutos por liberación, certificados, lotes y rondas</small></summary><fieldset><legend>Liberación</legend>
+          <div class="row">
+            <div class="field"><label for="p_minLib">Minutos por liberación</label><input type="number" id="p_minLib" min="0" step="1"></div>
+            <div class="field"><label for="p_minCert">Minutos por certificado</label><input type="number" id="p_minCert" min="0" step="1"></div>
+            <div class="field"><label for="p_lotes">Lotes de materia prima por semana</label><input type="number" id="p_lotes" min="0" step="1"></div>
+            <div class="field"><label for="p_minLote">Minutos por lote</label><input type="number" id="p_minLote" min="0" step="1"></div>
+            <div class="field"><label for="p_rondas">Rondas en proceso requeridas por turno</label><input type="number" id="p_rondas" min="0" step="1"></div>
+            <div class="field"><label for="p_minRonda">Minutos por ronda</label><input type="number" id="p_minRonda" min="0" step="1"></div>
+            <div class="field"><label for="p_otras">Tiempo del inspector en otras tareas (%)</label><input type="number" id="p_otras" min="0" max="95" step="5"><div class="hint">Documentos, reclamos, consultas.</div></div>
+          </div>
+        </fieldset></details>
+        <details class="acc"><summary>Costos<small>Hora del operario, máquina parada y salario del inspector</small></summary><fieldset><legend>Costos</legend>
+          <div class="row">
+            <div class="field"><label for="p_costoMO">Hora del operario (COP)</label><input type="number" id="p_costoMO" min="0" step="500"><div class="hint">Hora mínima de COP 7.295 más prestaciones <a class="cite" href="#f-decretos">(Decretos 1469 y 1470 de 2025)</a>.</div></div>
+            <div class="field"><label for="p_costoMaq">Hora de máquina parada (COP)</label><input type="number" id="p_costoMaq" min="0" step="1000"><div class="hint">Adicional a la mano de obra. La tarifa real la da Costos.</div></div>
+            <div class="field"><label for="p_salario">Salario del inspector (COP/mes)</label><input type="number" id="p_salario" min="0" step="10000"><div class="hint">Promedio en Medellín <a class="cite" href="#f-indeed">(Indeed, 2026)</a>.</div></div>
+            <div class="field"><label for="p_carga">Carga prestacional (%)</label><input type="number" id="p_carga" min="0" step="1"></div>
+          </div>
+          <label style="display:flex;gap:8px;align-items:center;font-weight:500"><input type="checkbox" id="p_incMaq" style="width:18px;height:18px;accent-color:#141414"> Incluir el costo de la máquina parada</label>
+        </fieldset></details>
+        <fieldset><legend>Crecimiento</legend>
+          <div class="presets" id="growthPresets" style="margin-bottom:8px">
+            <button class="chip" data-g="18.9">Visión 2030: duplicar en 4 años</button>
+            <button class="chip" data-g="20.34">Ritmo de 2025</button>
+            <button class="chip" data-g="0">Sin crecimiento</button>
+          </div>
+          <div class="row">
+            <div class="field"><label for="p_crec">Crecimiento anual de ventas (%)</label><input type="number" id="p_crec" min="-20" max="100" step="0.1"></div>
+            <div class="field"><label for="p_anioFin">Proyectar hasta el año</label><input type="number" id="p_anioFin" min="2027" max="2035" step="1"></div>
+          </div>
+          <div class="hint">Supuesto: las liberaciones y los lotes crecen al mismo ritmo que las ventas.</div>
+        </fieldset>
+        <fieldset><legend>Soluciones que se aplican</legend>
+          <div id="fronts"></div>
+          <div class="hint" style="margin-bottom:10px">Las reducciones se combinan entre sí. Con los valores iniciales suman cerca del 30 %, en línea con el 31,8 % de <a class="cite" href="#f-cp">Colombia Productiva (2022)</a>.</div>
+        </fieldset>
+        <details class="acc"><summary>Inversión del piloto<small>Galgas, calibradores y horas de formación</small></summary><fieldset><legend>Inversión del piloto</legend>
+          <div class="row">
+            <div class="field"><label for="p_galgas">Galgas y hoja estándar (COP)</label><input type="number" id="p_galgas" min="0" step="50000"><div class="hint">Supuesto; hay que cotizarlo.</div></div>
+            <div class="field"><label for="p_calib">Calibradores conectados (cantidad)</label><input type="number" id="p_calib" min="0" step="1"></div>
+            <div class="field"><label for="p_usd">Precio por calibrador (USD)</label><input type="number" id="p_usd" min="0" step="10"></div>
+            <div class="field"><label for="p_trm">Tasa de cambio (COP/USD)</label><input type="number" id="p_trm" min="0" step="50"></div>
+            <div class="field"><label for="p_opForm">Operarios a certificar</label><input type="number" id="p_opForm" min="0" step="1"></div>
+            <div class="field"><label for="p_hForm">Horas de formación por operario</label><input type="number" id="p_hForm" min="0" step="1"></div>
+          </div>
+        </fieldset></details>
+        <div class="btns"><button class="btn ghost sm" id="resetBtn">Volver a los valores iniciales</button></div>
+      </div>
+
+      <div class="sim-out">
+        <div class="kpis">
+          <div class="kpi"><div class="v" id="kHoras">–</div><div class="l">horas-máquina perdidas este año</div></div>
+          <div class="kpi"><div class="v" id="kCosto">–</div><div class="l">costo de la espera este año</div></div>
+          <div class="kpi hi"><div class="v" id="kAhorro">–</div><div class="l">ahorro al año con las soluciones elegidas (<span id="kRed">–</span> menos espera)</div></div>
+          <div class="kpi hi"><div class="v" id="kRoi">–</div><div class="l">para recuperar la inversión de <span id="kInv">–</span></div></div>
+          <div class="kpi"><div class="v" id="kInsp">–</div><div class="l">costo anual de un tercer inspector</div></div>
+          <div class="kpi" id="kSatBox"><div class="v" id="kSat">–</div><div class="l" id="kSatL">año en que Calidad se satura sin cambios</div></div>
+        </div>
+        <div class="chartbox">
+          <h4>Costo anual de la espera</h4>
+          <div class="legend"><span><i style="background:#141414"></i>Sin cambios</span><span><i style="background:#6f6c00"></i>Con las soluciones</span><span><i style="background:repeating-linear-gradient(90deg,#999 0 4px,transparent 4px 7px)"></i>Tercer inspector</span></div>
+          <svg id="chCost" viewBox="0 0 640 250" width="100%" role="img" aria-label="Proyección del costo anual de la espera"></svg>
+        </div>
+        <div class="chartbox">
+          <h4>Carga de Calidad frente a su capacidad</h4>
+          <div class="legend"><span><i style="background:#141414;height:10px"></i>Sin cambios</span><span><i style="background:#6f6c00;height:10px"></i>Con las soluciones</span><span><i style="background:#b3261e"></i>Capacidad (100 %)</span></div>
+          <svg id="chLoad" viewBox="0 0 640 230" width="100%" role="img" aria-label="Carga de Calidad por año"></svg>
+        </div>
+        <p class="small muted" id="simNote"></p>
+      </div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- PLAN -->
+<section id="plan" class="tool" data-acc="2">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">02</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 2 · Ejecutar</span><h2>Plan de acción</h2></div>
+    <p class="intro">Las soluciones elegidas en el simulador se convierten en acciones con responsable, plazo, indicador y beneficio. Marque el avance para ver el cumplimiento y los riesgos.</p><ol class="how"><li><b>1</b>Confirme las estrategias</li><li><b>2</b>Asigne responsables y fecha</li><li><b>3</b>Actualice el estado de cada acción</li></ol></div></div><div class="tf-body">
+    <details class="acc">
+      <summary>Estrategias incluidas<small>Qué soluciones entran en el plan; se sincronizan con el simulador</small></summary>
+      <div style="padding:4px 16px 14px"><div class="row" id="planStrats" style="grid-template-columns:repeat(auto-fit,minmax(230px,1fr))"></div></div>
+    </details>
+    <div class="row" style="margin:0 0 16px;max-width:420px">
+      <div class="field"><label for="planStart">Fecha de inicio del plan</label><input type="date" id="planStart"></div>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+      <div class="kpi hi"><div class="v" id="pCump">–</div><div class="l">de cumplimiento</div></div>
+      <div class="kpi"><div class="v" id="pTiempo">–</div><div class="l">de lo terminado, a tiempo</div></div>
+      <div class="kpi" id="pAtrBox"><div class="v" id="pAtr">–</div><div class="l">acciones atrasadas</div></div>
+      <div class="kpi"><div class="v" id="pBen">–</div><div class="l">beneficio anual estimado del plan</div></div>
+      <div class="kpi"><div class="v" id="pRiesgo">–</div><div class="l">riesgos altos por atender</div></div>
+    </div>
+    <h3 style="margin-top:18px">Cronograma</h3>
+    <div class="gantt" id="gantt"></div>
+    <p class="hint swipe">Deslice la tabla hacia la izquierda para ver las 12 semanas.</p>
+    <h3 style="margin-top:26px">Acciones</h3>
+    <div class="tbl stack"><table id="planTable"><thead><tr><th>Acción</th><th>Responsable</th><th>Semanas</th><th>Indicador de cumplimiento</th><th>Beneficio esperado</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
+    <h3 style="margin-top:26px">Riesgos</h3>
+    <div class="grid2" style="grid-template-columns:minmax(0,440px) 1fr">
+      <div>
+        <div class="riskgrid" id="riskGrid"></div>
+        <p class="hint">Probabilidad en el eje vertical e impacto en el horizontal. Ajústelos en la tabla.</p>
+      </div>
+      <details class="acc"><summary>Detalle y ajuste de riesgos<small>Probabilidad, impacto y mitigación de cada riesgo</small></summary><div class="tbl stack" style="border:none;border-radius:0"><table id="riskTable"><thead><tr><th>#</th><th>Riesgo</th><th>Probabilidad</th><th>Impacto</th><th>Mitigación</th></tr></thead><tbody></tbody></table></div></details>
+    </div>
+    <div class="btns" style="margin-top:14px"><button class="btn ghost sm" id="planCsv">Exportar plan (CSV)</button><button class="btn ghost sm" onclick="window.print()">Imprimir</button></div>
+  </div></div></div>
+</section>
+
+<!-- LINEA BASE -->
+<section id="linea-base" class="tool" data-acc="3">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">03</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 3 · Medir</span><h2>Línea base y antes/después</h2></div>
+    <p class="intro">Registre cada arranque o lote: hora en que quedó listo y hora en que Calidad lo liberó. La espera se calcula sola y se compara entre la línea base y el piloto.</p><ol class="how"><li><b>1</b>Registre cada arranque</li><li><b>2</b>Repita durante el piloto</li><li><b>3</b>Compare y lleve el dato al simulador</li></ol></div></div><div class="tf-body">
+    <div class="grid2" style="grid-template-columns:minmax(0,420px) 1fr">
+      <form class="card" id="regForm">
+        <div class="row">
+          <div class="field"><label for="r_fase">Fase</label><select id="r_fase"><option>Línea base</option><option>Piloto</option></select></div>
+          <div class="field"><label for="r_tipo">Tipo</label><select id="r_tipo"><option>Arranque de máquina</option><option>Lote de materia prima</option></select></div>
+          <div class="field"><label for="r_fecha">Fecha</label><input type="date" id="r_fecha" required></div>
+          <div class="field"><label for="r_turno">Turno</label><select id="r_turno"><option>Mañana</option><option>Tarde</option><option>Noche</option></select></div>
+          <div class="field"><label for="r_maq">Máquina o lote</label><input type="text" id="r_maq" placeholder="Ej.: Torno CNC 2" required></div>
+          <div class="field"><label for="r_lista">Hora lista</label><input type="time" id="r_lista" required></div>
+          <div class="field"><label for="r_lib">Hora liberada</label><input type="time" id="r_lib" required></div>
+        </div>
+        <div class="field"><label for="r_motivo">Motivo de la espera</label><select id="r_motivo"><option>Calidad atendiendo otra máquina</option><option>Calidad en recepción de materia prima</option><option>Calidad generando certificados</option><option>No se encontró a Calidad</option><option>Ajuste de la pieza</option><option>Sin espera</option><option>Otro</option></select></div>
+        <div class="btns"><button class="btn" type="submit">Registrar</button><span class="hint" id="regMsg"></span></div>
+      </form>
+      <div>
+        <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+          <div class="kpi"><div class="v" id="bN">0</div><div class="l">registros</div></div>
+          <div class="kpi"><div class="v" id="bAvgB">–</div><div class="l">espera promedio, línea base</div></div>
+          <div class="kpi hi"><div class="v" id="bAvgP">–</div><div class="l">espera promedio, piloto</div></div>
+          <div class="kpi"><div class="v" id="bDelta">–</div><div class="l">cambio frente a la línea base</div></div>
+        </div>
+        <div class="chartbox"><h4>Espera promedio por motivo (min)</h4><div class="bars" id="bBars"><p class="small muted">Aún no hay registros.</p></div></div>
+        <div class="btns"><button class="btn y sm" id="bUse">Usar el promedio de la línea base en el simulador</button><button class="btn ghost sm" id="bCsv">Exportar CSV</button></div>
+      </div>
+    </div>
+    <details style="margin-top:18px"><summary>Ver registros</summary>
+      <div class="tbl stack" style="margin-top:10px"><table id="regTable"><thead><tr><th>Fecha</th><th>Fase</th><th>Tipo</th><th>Turno</th><th>Máquina o lote</th><th class="r">Espera (min)</th><th>Motivo</th><th></th></tr></thead><tbody></tbody></table></div>
+    </details>
+  </div></div></div>
+</section>
+
+<!-- MEJORAS -->
+<section id="mejoras" class="tool" data-acc="4">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">04</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 4 · Participar</span><h2>Mejoras: ideas de todos</h2></div>
+    <p class="intro">Cualquier persona registra un problema o una idea. El comité la evalúa por impacto y esfuerzo y responde en máximo 7 días. Todos ven el estado de su idea.</p><ol class="how"><li><b>1</b>Describa el problema y su idea</li><li><b>2</b>El comité evalúa y responde</li><li><b>3</b>Siga el estado en el tablero</li></ol></div></div><div class="tf-body">
+    <div class="grid2" style="grid-template-columns:minmax(0,420px) 1fr">
+      <form class="card" id="ideaForm">
+        <div class="row">
+          <div class="field"><label for="i_area">Área</label><select id="i_area"><option>Mecanizado</option><option>Troquelado</option><option>Mangueras</option><option>Calidad</option><option>Mantenimiento</option><option>Bodega y despachos</option><option>Administrativa</option><option>Otra</option></select></div>
+          <div class="field"><label for="i_nombre">Nombre (opcional)</label><input type="text" id="i_nombre" placeholder="Puede dejarlo vacío"></div>
+        </div>
+        <div class="field"><label for="i_prob">¿Qué problema u oportunidad ve?</label><textarea id="i_prob" required placeholder="Qué pasa, dónde y cada cuánto"></textarea></div>
+        <div class="field"><label for="i_idea">¿Qué propone?</label><textarea id="i_idea" placeholder="Su idea, aunque sea pequeña"></textarea></div>
+        <button class="btn" type="submit">Enviar idea</button>
+      </form>
+      <div>
+        <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+          <div class="kpi"><div class="v" id="iN">0</div><div class="l">ideas recibidas</div></div>
+          <div class="kpi kpi-wide"><div class="v" id="iPer">–</div><div class="l">ideas por persona (de <input type="number" id="iEmp" min="1" style="width:64px;padding:1px 4px;font-size:.8rem"> personas <a class="cite" href="#f-emis">EMIS, 2026</a>)</div></div>
+          <div class="kpi hi"><div class="v" id="i7">–</div><div class="l">respondidas en ≤ 7 días</div></div>
+          <div class="kpi"><div class="v" id="iImp">–</div><div class="l">implementadas</div></div>
+        </div>
+        <h4>Matriz impacto y esfuerzo</h4>
+        <div class="quad" id="quad"></div>
+      </div>
+    </div>
+    <div class="btns" style="margin:22px 0 10px;justify-content:space-between">
+      <div class="btns"><span class="small">Filtrar:</span><select id="iFilter" style="width:auto"><option value="">Todas</option><option>Recibida</option><option>En evaluación</option><option>Aprobada</option><option>Implementada</option><option>Descartada</option></select></div>
+      <div class="btns"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="comiteToggle" style="width:18px;height:18px;accent-color:#141414"> Modo comité (evaluar y responder)</label><button class="btn ghost sm" id="iCsv">Exportar CSV</button></div>
+    </div>
+    <div class="list-ideas" id="ideaList"></div>
+
+    <div class="card dark" style="margin-top:22px">
+      <h3>Análisis con IA de las ideas y del Censo</h3>
+      <p class="small muted">Prepara un texto listo para pegar en el asistente de IA de la empresa (por ejemplo, Copilot). Puede agregar las respuestas abiertas del Censo exportadas de Forms. La IA agrupa y prioriza; el comité decide.</p>
+      <div class="field"><label for="censoTxt" style="color:#ddd">Respuestas del Censo (opcional, pegue el texto)</label><textarea id="censoTxt" placeholder="Pegue aquí las respuestas abiertas, una por línea"></textarea></div>
+      <div class="btns"><button class="btn y" id="aiBtn">Preparar y copiar análisis</button><span class="hint" id="aiMsg" style="color:#ccc"></span></div>
+      <textarea id="aiOut" style="display:none;margin-top:10px;min-height:160px" readonly></textarea>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- RIESGO -->
+<section id="riesgo" class="tool" data-acc="5">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">05</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 5 · Decidir</span><h2>Matriz de liberación por riesgo</h2></div>
+    <p class="intro">Clasifica cada referencia: si debe liberarla Calidad o si puede liberarla un operario certificado, con auditoría posterior. El porcentaje resultante alimenta el simulador.</p><ol class="how"><li><b>1</b>Escriba la referencia</li><li><b>2</b>Responda las cinco preguntas</li><li><b>3</b>Guarde y lleve el porcentaje al simulador</li></ol></div></div><div class="tf-body">
+    <div class="grid2" style="grid-template-columns:minmax(0,420px) 1fr">
+      <form class="card" id="refForm">
+        <div class="row">
+          <div class="field"><label for="f_ref">Referencia</label><input type="text" id="f_ref" required placeholder="Código o nombre"></div>
+          <div class="field"><label for="f_proc">Proceso</label><select id="f_proc"><option>Mecanizado</option><option>Troquelado</option><option>Mangueras</option><option>Otro</option></select></div>
+        </div>
+        <div class="checks">
+          <label><input type="checkbox" id="f_nueva"> Es nueva o tuvo un cambio de diseño</label>
+          <label><input type="checkbox" id="f_cambio"> Hubo cambio de troquel, herramienta o material</label>
+          <label><input type="checkbox" id="f_reclamo"> Tuvo reclamo o pieza no conforme en los últimos 3 meses</label>
+          <label><input type="checkbox" id="f_cliente"> El cliente exige aprobación formal de Calidad</label>
+          <label><input type="checkbox" id="f_estable"> Tiene al menos 10 lotes seguidos conformes</label>
+        </div>
+        <div id="refResult" class="result w">Complete los datos para ver la clasificación.</div>
+        <div class="btns" style="margin-top:12px"><button class="btn" type="submit">Guardar referencia</button></div>
+      </form>
+      <div>
+        <div class="kpis" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi"><div class="v" id="fN">0</div><div class="l">referencias</div></div>
+          <div class="kpi hi"><div class="v" id="fOp">–</div><div class="l">puede liberarlas un operario</div></div>
+          <div class="kpi"><div class="v" id="fQ">–</div><div class="l">las libera Calidad</div></div>
+        </div>
+        <div class="tbl stack"><table id="refTable"><thead><tr><th>Referencia</th><th>Proceso</th><th>Quién libera</th><th></th></tr></thead><tbody></tbody></table></div>
+        <div class="btns" style="margin-top:10px"><button class="btn y sm" id="fUse">Usar este porcentaje en el simulador</button></div>
+      </div>
+    </div>
+  </div></div></div>
+</section>
+
+<!-- PLANTILLAS -->
+<section id="plantillas" class="tool" data-acc="6">
+  <div class="wrap"><div class="toolframe">
+    <div class="tf-head"><div class="tf-num">06</div><div class="tf-txt"><div class="sec-head"><span class="tag">Herramienta 6 · Documentar</span><h2>Plantillas del método</h2></div>
+    <p class="intro">Sirven para este problema y para cualquier otro que salga del Censo. Se guardan en su navegador y se pueden imprimir o guardar como PDF.</p><ol class="how"><li><b>1</b>Elija la plantilla</li><li><b>2</b>Complete los campos</li><li><b>3</b>Imprima o guarde en PDF</li></ol></div></div><div class="tf-body">
+    <div class="tabs" id="tplTabs"><button data-t="emp" class="on">Mapa de empatía</button><button data-t="why">5 porqués</button><button data-t="a3">Hoja A3</button></div>
+    <div class="card" id="tplBody"></div>
+    <div class="btns" style="margin-top:12px"><button class="btn" id="tplPrint">Imprimir o guardar PDF</button><button class="btn ghost" id="tplClear">Limpiar</button></div>
+  </div></div></div>
+</section>
+
+</div><!-- /zone-tools -->
+
+<!-- PEDIDO -->
+<section id="pedido">
+  <div class="wrap">
+    <div class="zone-label">Parte 3 · Próximos pasos</div>
+    <div class="sec-head"><span class="tag">05 · Próximo paso</span><h2>Lo que se pide</h2></div>
+    <p class="intro">Para empezar no hace falta presupuesto: solo permiso para medir dos semanas y una reunión con Calidad y Producción.</p>
+    <div class="grid2">
+      <ol class="card todo" style="padding-left:40px;margin:0">
+        <li>Autorizar la línea base de 2 semanas en 1 máquina.</li>
+        <li>Una reunión de 30 minutos con Calidad y Producción para validar el diagnóstico y elegir la máquina y la referencia del piloto.</li>
+        <li>Confirmar qué exigen los clientes y el sistema de gestión sobre quién puede liberar una primera pieza.</li>
+        <li>Designar a una persona que coordine el piloto (puede ser quien propone).</li>
+        <li>Evaluar la postulación a Fábricas de Productividad.</li>
+      </ol>
+      <div class="card dark">
+        <h3>Apoyo externo: Fábricas de Productividad</h3>
+        <p class="small">Programa de Colombia Productiva y MinCIT operado con las cámaras de comercio. Ofrece hasta 60 horas de consultoría especializada <a class="cite" href="#f-cc">(Cámara de Comercio, 2026)</a>. En sus intervenciones, la productividad subió 31,4 % en promedio <a class="cite" href="#f-cp">(Colombia Productiva, 2022)</a>.</p>
+        <ol class="small" style="padding-left:18px">
+          <li>Consultar la convocatoria vigente en la Cámara de Comercio Aburrá Sur o en la de Medellín para Antioquia.</li>
+          <li>Elegir la línea de calidad o de productividad operacional.</li>
+          <li>Presentar este diagnóstico y la línea base como punto de partida.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DOCUMENTACION -->
+<section id="documentacion">
+  <div class="wrap">
+    <div class="sec-head"><span class="tag">Documentación</span><h2>Fuentes</h2></div>
+    <p class="intro">Cada dato citado en la página lleva autor y año y remite a esta lista. Las cifras de Camel provienen de bases comerciales, no de estados financieros auditados. Los valores del simulador son supuestos editables.</p>
+    <div class="tbl src stack">
+      <table>
+        <thead><tr><th>Autor u organización</th><th>Año</th><th>Documento</th><th>Qué respalda</th></tr></thead>
+        <tbody>
+          <tr id="f-camel"><td>Autoindustrial Camel S.A.</td><td>s. f.</td><td><a href="https://www.camel.com.co/en/historia" target="_blank" rel="noopener">Historia, misión, Visión 2030 y política de calidad</a></td><td>Visión 2030, política de calidad, antecedente Kaizen</td></tr>
+          <tr id="f-emis"><td>EMIS</td><td>2026</td><td><a href="https://www.emis.com/php/company-profile/CO/Autoindustrial_Camel_SA_en_1183473.html" target="_blank" rel="noopener">Perfil de Autoindustrial Camel S.A.</a></td><td>Ventas +20,34 % en 2025; 59 empleados</td></tr>
+          <tr id="f-cp"><td>Colombia Productiva y MinCIT</td><td>2022</td><td><a href="https://www.mincit.gov.co/prensa/noticias/industria/fabricas-productividad-ataca-problemas-de-empresas" target="_blank" rel="noopener">Balance de Fábricas de Productividad</a></td><td>+31,4 % de productividad; −31,8 % de tiempos sin valor agregado</td></tr>
+          <tr id="f-cc"><td>Cámara de Comercio (Cámara Directa)</td><td>2026</td><td><a href="https://www.camaradirecta.com/programas-para-empresarios/programa-para-empresas-en-scalamiento/fabricas-de-productividad/" target="_blank" rel="noopener">Programa Fábricas de Productividad</a></td><td>Hasta 60 horas de consultoría</td></tr>
+          <tr id="f-aws"><td>Strand Partners para AWS</td><td>2026</td><td><a href="https://impactotic.co/inteligencia-artificial/adopcion-de-ia-en-empresas-colombia-andicom/" target="_blank" rel="noopener">Adopción de IA en empresas de Colombia (reseña de Impacto TIC)</a></td><td>42 % usa IA; 18 % con estrategia; 74 % en usos básicos</td></tr>
+          <tr id="f-graban"><td>Graban, M., con datos de Toyota Times</td><td>2026</td><td><a href="https://www.leanblog.org/2026/06/kaizen-job-ownership-toyota-1992/" target="_blank" rel="noopener">Kaizen y el sistema de sugerencias de Toyota (Lean Blog)</a></td><td>14,4 ideas por persona; premios pequeños; buzones con 2–5 % de implementación</td></tr>
+          <tr id="f-rs"><td>Robinson, A. G. y Schroeder, D. M.</td><td>2004</td><td><i>Ideas Are Free</i>, reseñado por <a href="https://www.seanfoster.co.nz/the-power-of-a-well-implemented-suggestion-system/" target="_blank" rel="noopener">Sean Foster</a></td><td>Alto desempeño: 12 o más ideas implementadas por persona al año</td></tr>
+          <tr id="f-fai"><td>Darchem, Hartwell (S. Pandya) y FARO</td><td>s. f.</td><td>Casos comerciales de inspección de primera pieza digital (enlace por confirmar)</td><td>Reducción de 50 % a 98 % del tiempo de inspección</td></tr>
+          <tr id="f-judge"><td>Judge Tool</td><td>2026</td><td><a href="https://www.judgetool.com/products/mitutoyo-u-wave-fit-wireless-packages/" target="_blank" rel="noopener">Mitutoyo U-WAVE: paquetes inalámbricos</a></td><td>Calibrador conectado desde unos USD 290 (precio en EE. UU.)</td></tr>
+          <tr id="f-decretos"><td>Gobierno de Colombia, Decretos 1469 y 1470 de 2025</td><td>2025</td><td><a href="https://blog.alegra.com/colombia/salario-minimo-en-colombia-2026/" target="_blank" rel="noopener">Salario mínimo 2026 (resumen de Alegra)</a></td><td>COP 1.750.905 al mes; hora mínima de COP 7.295</td></tr>
+          <tr id="f-indeed"><td>Indeed Colombia</td><td>2026</td><td><a href="https://co.indeed.com/career/inspector-de-calidad/salaries" target="_blank" rel="noopener">Salario de inspector de calidad</a></td><td>Promedio de COP 1.886.912 en Medellín</td></tr>
+          <tr id="f-icontec"><td>ICONTEC</td><td>—</td><td>NTC-ISO 2859-1, planes de muestreo por atributos</td><td>Inspección de recepción por niveles</td></tr>
+          <tr id="f-testani"><td>Testani</td><td>2021</td><td><a href="https://ieworldconference.org/content/SISE2021/Papers/Testani.pdf" target="_blank" rel="noopener">Design Thinking y DMAIC (IISE Annual Conference)</a></td><td>Integración de Design Thinking con Lean Six Sigma</td></tr>
+          <tr id="f-upm"><td>Universidad Politécnica de Madrid</td><td>2016</td><td><a href="https://oa.upm.es/44161/" target="_blank" rel="noopener">Trabajo de fin de grado sobre Hoshin y Design Thinking</a></td><td>Desplegar Hoshin desde la fase de empatizar</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap">
+    <p class="credits"><b>Propuesta:</b> <span class="cr-autor">Vanessa Serna</span> &nbsp;·&nbsp; <b>Diseño y desarrollo del sitio:</b> <span class="cr-sitio">Estiven Serna</span></p>
+    <p>Propuesta independiente presentada al Censo de Oportunidades de Mejora Continua. No es un documento oficial de la empresa. Los cálculos son estimaciones con supuestos editables; reemplácelos por datos medidos en planta.</p>
+    <p id="footMode"></p>
+  </div>
+</footer>
+
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+<!-- Camel assistant: recorrido guiado -->
+<div id="ca-shade"></div>
+<div id="progress" aria-hidden="true"></div>
+<div class="simbar" id="simBar"><div><span>Costo al año</span><b id="sbC">–</b></div><div><span>Ahorro al año</span><b id="sbA">–</b></div><div><span>Recupera en</span><b id="sbR">–</b></div><button type="button" id="sbGo" aria-label="Ver resultados del simulador">↓</button></div>
+<div id="ca-ring" aria-hidden="true"></div>
+<div id="ca-box" role="dialog" aria-labelledby="ca-title" aria-describedby="ca-text">
+  <span class="ca-arrow" id="ca-arrow"></span>
+  <div class="ca-k"><span class="mk"><i></i>Recorrido guiado</span><span id="ca-count"></span></div>
+  <h4 id="ca-title"></h4>
+  <p id="ca-text"></p>
+  <div class="ca-prog"><i id="ca-bar"></i></div>
+  <div class="ca-btns"><button type="button" id="ca-skip">Salir</button><div><button type="button" id="ca-prev">Anterior</button><button type="button" id="ca-next">Siguiente</button></div></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const CFG = window.CAMEL_CONFIG || {};
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const nf0 = new Intl.NumberFormat('es-CO',{maximumFractionDigits:0});
+const nf1 = new Intl.NumberFormat('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1});
+const copM = v => 'COP ' + nf1.format(v/1e6) + ' M';
+const pct = v => nf0.format(v*100) + ' %';
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+
+/* ---------- Almacenamiento local seguro ---------- */
+const mem = {};
+const LS = {
+  get(k,def){ try{ const v=localStorage.getItem('camel:'+k); return v==null?(k in mem?mem[k]:def):JSON.parse(v); }catch(e){ return k in mem?mem[k]:def; } },
+  set(k,v){ mem[k]=v; try{ localStorage.setItem('camel:'+k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* ---------- Datos compartidos (Google Sheets vía Apps Script) u locales ---------- */
+const Store = {
+  remote: !!CFG.backendUrl,
+  async list(t){
+    if(this.remote){
+      try{ const r=await fetch(CFG.backendUrl+'?t='+encodeURIComponent(t)); const j=await r.json(); if(Array.isArray(j.rows)){ LS.set('t_'+t,j.rows); return j.rows; } }
+      catch(e){ toast('No se pudo leer la hoja compartida; se muestran datos locales.'); }
+    }
+    return LS.get('t_'+t,[]);
+  },
+  async upsert(t,rec){
+    rec.updated=Date.now();
+    const rows=LS.get('t_'+t,[]); const i=rows.findIndex(r=>r.id===rec.id); if(i>=0) rows[i]=rec; else rows.push(rec); LS.set('t_'+t,rows);
+    if(this.remote){ try{ await fetch(CFG.backendUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({t,action:'upsert',record:rec})}); }catch(e){ toast('Guardado solo en este navegador: no hubo conexión con la hoja.'); } }
+  },
+  async remove(t,id){
+    LS.set('t_'+t, LS.get('t_'+t,[]).filter(r=>r.id!==id));
+    if(this.remote){ try{ await fetch(CFG.backendUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({t,action:'delete',id})}); }catch(e){} }
+  }
+};
+const badge=$('#modeBadge');
+if(Store.remote){ badge.textContent='Datos compartidos'; badge.classList.add('shared'); $('#footMode').textContent='Los registros, ideas, referencias y el avance del plan se guardan en una hoja de Google compartida.'; }
+else { $('#footMode').textContent='Modo local: los registros, ideas y el avance del plan se guardan solo en este navegador. Para compartirlos entre todos, configure la hoja de Google (ver README).'; }
+if(CFG.autor||CFG.sitio){ $('#byline').innerHTML=(CFG.autor?'Propuesta de <b>'+esc(CFG.autor)+'</b>':'')+(CFG.autor&&CFG.sitio?' · ':'')+(CFG.sitio?'Sitio creado por <b>'+esc(CFG.sitio)+'</b>':'')+' · Noviembre de 2026'; $$('.cr-autor').forEach(e=>e.textContent=CFG.autor||''); $$('.cr-sitio').forEach(e=>e.textContent=CFG.sitio||''); }
+
+/* ---------- Simulador ---------- */
+const FRONTS = {
+  escalonado:{name:'Arranque escalonado y canal de llamado', r:10},
+  galgas:{name:'Galgas pasa/no pasa y hoja estándar', r:10},
+  certificado:{name:'Operario certificado (liberación por riesgo)', r:10, x:{k:'pctRefs',label:'Referencias que libera el operario (%)',v:50}},
+  digital:{name:'Registro digital y certificado automático', r:5, x:{k:'redCert',label:'Menos tiempo por certificado (%)',v:50}},
+  recepcion:{name:'Recepción por niveles', r:0, x:{k:'redLote',label:'Menos tiempo por lote (%)',v:50}}
+};
+const DEF = {
+  maquinas:3, turnos:2, dias:22, inspectores:1, espera:15, minLib:15, minCert:10, lotes:10, minLote:40, rondas:4, minRonda:20, otras:50,
+  costoMO:11000, costoMaq:69000, incMaq:true, salario:1900000, carga:50, crec:18.9, anioFin:2030,
+  galgas:1500000, calib:1, usd:290, trm:4000, opForm:2, hForm:16,
+  fronts:{ escalonado:{on:true,r:10}, galgas:{on:true,r:10}, certificado:{on:true,r:10,pctRefs:50}, digital:{on:true,r:5,redCert:50}, recepcion:{on:false,r:0,redLote:50} },
+  extra:{ base:true, evaluacion:true, kaizen:true, fabricas:false }
+};
+const PRESETS = { piloto:{maquinas:1, espera:15}, minimo:{maquinas:3, espera:15}, planta:{maquinas:10, espera:20} };
+const clone = o => JSON.parse(JSON.stringify(o));
+function merge(base, over){ const o=clone(base); if(!over) return o; for(const k in over){ if(over[k] && typeof over[k]==='object' && !Array.isArray(over[k]) && typeof o[k]==='object') o[k]=merge(o[k],over[k]); else o[k]=over[k]; } return o; }
+
+let P; let SHARED=false;
+(function loadParams(){
+  let fromHash=null;
+  if(location.hash.startsWith('#s=')){ try{ fromHash=JSON.parse(decodeURIComponent(escape(atob(location.hash.slice(3))))); }catch(e){} }
+  P = merge(DEF, fromHash || LS.get('params',null)); SHARED=!!fromHash;
+  if(fromHash){ history.replaceState(null,'',location.pathname+'#simulador'); setTimeout(()=>{ document.getElementById('simulador').scrollIntoView(); toast('Escenario compartido cargado.'); },300); }
+})();
+const saveP = () => LS.set('params',P);
+
+const NUMS = ['maquinas','turnos','dias','inspectores','espera','minLib','minCert','lotes','minLote','rondas','minRonda','otras','costoMO','costoMaq','salario','carga','crec','anioFin','galgas','calib','usd','trm','opForm','hForm'];
+function bindInputs(){
+  NUMS.forEach(k=>{ const el=$('#p_'+k); if(!el) return; el.value=P[k]; el.addEventListener('input',()=>{ const v=parseFloat(el.value); const bad=isNaN(v)||(el.min!==''&&v<+el.min)||(el.max!==''&&v>+el.max); el.classList.toggle('bad',bad); let msg=el.parentNode.querySelector('.errmsg'); if(bad){ if(!msg){ msg=document.createElement('div'); msg.className='hint errmsg'; el.after(msg); } msg.textContent=el.max!==''?'Use un valor entre '+el.min+' y '+el.max+'.':'Use un valor de '+(el.min||0)+' o más.'; } else { if(msg) msg.remove(); P[k]=v; saveP(); renderAll(); } }); });
+  const inc=$('#p_incMaq'); inc.checked=!!P.incMaq; inc.addEventListener('change',()=>{ P.incMaq=inc.checked; saveP(); renderAll(); });
+}
+function renderFronts(){
+  const box=$('#fronts'); box.innerHTML='';
+  Object.keys(FRONTS).forEach(k=>{
+    const f=FRONTS[k], s=P.fronts[k];
+    const d=document.createElement('div'); d.className='front'+(s.on?'':' off');
+    d.innerHTML=`<input type="checkbox" id="fr_${k}" ${s.on?'checked':''}><label for="fr_${k}" style="margin:0;font-size:.9rem">${esc(f.name)}</label>
+      <div class="sub"><div><label for="fr_${k}_r">Menos espera (%)</label><input type="number" id="fr_${k}_r" min="0" max="90" step="1" value="${s.r}"></div>
+      ${f.x?`<div><label for="fr_${k}_x">${esc(f.x.label)}</label><input type="number" id="fr_${k}_x" min="0" max="100" step="5" value="${s[f.x.k]}"></div>`:''}</div>`;
+    box.appendChild(d);
+    d.querySelector('#fr_'+k).addEventListener('change',e=>{ s.on=e.target.checked; d.classList.toggle('off',!s.on); saveP(); renderAll(); renderPlanStrats(); });
+    d.querySelector('#fr_'+k+'_r').addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(!isNaN(v)){ s.r=v; saveP(); renderAll(); } });
+    if(f.x) d.querySelector('#fr_'+k+'_x').addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(!isNaN(v)){ s[f.x.k]=v; saveP(); renderAll(); } });
+  });
+}
+
+function calc(p){
+  const base=2026, n=Math.max(1,(p.anioFin|0)-base);
+  const F=p.fronts;
+  let keep=1; Object.keys(F).forEach(k=>{ if(F[k].on) keep*=(1-Math.min(90,Math.max(0,F[k].r))/100); });
+  const red=1-keep;
+  const costoHora=p.costoMO+(p.incMaq?p.costoMaq:0);
+  const cap=Math.max(0.0001,p.inspectores*480*(1-Math.min(95,p.otras)/100));
+  const pctOp=F.certificado.on?F.certificado.pctRefs/100:0;
+  const certF=F.digital.on?(1-F.digital.redCert/100):1;
+  const loteF=F.recepcion.on?(1-F.recepcion.redLote/100):1;
+  const years=[];
+  for(let i=0;i<=n;i++){
+    const g=Math.pow(1+p.crec/100,i);
+    const maq=p.maquinas*g;
+    const horas=maq*p.espera/60*p.turnos*p.dias*12;
+    const costo=horas*costoHora;
+    const lotesTurno=p.lotes*g/5/Math.max(1,p.turnos);
+    const demSin=maq*(p.minLib+p.minCert)+lotesTurno*p.minLote+p.rondas*p.minRonda;
+    const demCon=maq*(1-pctOp)*(p.minLib+p.minCert*certF)+maq*pctOp*p.minLib*0.2+lotesTurno*p.minLote*loteF+p.rondas*p.minRonda;
+    years.push({anio:base+i,maq,horas,costo,costoCon:costo*keep,ahorro:costo*red,uSin:demSin/cap,uCon:demCon/cap});
+  }
+  let inv=0;
+  if(F.galgas.on) inv+=p.galgas;
+  if(F.digital.on) inv+=p.calib*p.usd*p.trm;
+  if(F.certificado.on) inv+=p.opForm*p.hForm*p.costoMO;
+  const insp=p.salario*(1+p.carga/100)*12;
+  const ah0=years[0].ahorro;
+  const roi=ah0>0?inv/(ah0/12):Infinity;
+  const satSin=(years.find(y=>y.uSin>1)||{}).anio||null;
+  const satCon=(years.find(y=>y.uCon>1)||{}).anio||null;
+  return {years,red,keep,inv,insp,roi,satSin,satCon,costoHora};
+}
+
+function niceMax(v){ if(v<=0) return 1; const e=Math.pow(10,Math.floor(Math.log10(v))); const m=v/e; const s=m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10; return s*e; }
+function svgEl(tag,attrs,text){ const e=document.createElementNS('http://www.w3.org/2000/svg',tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(text!=null) e.textContent=text; return e; }
+
+function drawCost(R){
+  const svg=$('#chCost'); svg.innerHTML='';
+  const W=640,H=250,L=62,Rm=110,T=14,B=30, w=W-L-Rm, h=H-T-B;
+  const ys=R.years; const maxV=niceMax(Math.max(R.insp,...ys.map(y=>y.costo))*1.05);
+  const x=i=> L+(ys.length===1?w/2:i*w/(ys.length-1)); const y=v=> T+h-(v/maxV)*h;
+  for(let k=0;k<=4;k++){ const v=maxV*k/4; svg.appendChild(svgEl('line',{x1:L,x2:L+w,y1:y(v),y2:y(v),stroke:'#ebe8df'})); svg.appendChild(svgEl('text',{x:L-8,y:y(v)+4,'text-anchor':'end'},nf1.format(v/1e6)+' M')); }
+  ys.forEach((d,i)=> svg.appendChild(svgEl('text',{x:x(i),y:H-10,'text-anchor':'middle'},d.anio)));
+  svg.appendChild(svgEl('line',{x1:L,x2:L+w,y1:y(R.insp),y2:y(R.insp),stroke:'#999','stroke-width':1.5,'stroke-dasharray':'5 4'}));
+  svg.appendChild(svgEl('text',{x:L+w+6,y:y(R.insp)+4,style:'fill:#6b6a64'},'Inspector: '+nf1.format(R.insp/1e6)+' M'));
+  const line=(key,color)=>{ const pts=ys.map((d,i)=>x(i)+','+y(d[key])).join(' '); svg.appendChild(svgEl('polyline',{points:pts,fill:'none',stroke:color,'stroke-width':2.5,'stroke-linejoin':'round'})); ys.forEach((d,i)=> svg.appendChild(svgEl('circle',{cx:x(i),cy:y(d[key]),r:3.5,fill:color}))); };
+  line('costo','#141414'); line('costoCon','#6f6c00');
+  const last=ys[ys.length-1];
+  let y1=y(last.costo)+4, y2=y(last.costoCon)+4; if(Math.abs(y1-y2)<14){ if(y1<y2) y2=y1+14; else y1=y2+14; }
+  svg.appendChild(svgEl('text',{x:L+w+6,y:y1,style:'fill:#141414;font-weight:700'},nf1.format(last.costo/1e6)+' M'));
+  svg.appendChild(svgEl('text',{x:L+w+6,y:y2,style:'fill:#6f6c00;font-weight:700'},nf1.format(last.costoCon/1e6)+' M'));
+}
+function drawLoad(R){
+  const svg=$('#chLoad'); svg.innerHTML='';
+  const W=640,H=230,L=46,Rm=16,T=14,B=30,w=W-L-Rm,h=H-T-B;
+  const ys=R.years; const maxV=Math.max(1.2,niceMax(Math.max(...ys.map(d=>d.uSin))*1.05));
+  const y=v=>T+h-(v/maxV)*h; const gw=w/ys.length; const bw=Math.min(28,gw*0.32);
+  for(let k=0;k<=4;k++){ const v=maxV*k/4; svg.appendChild(svgEl('line',{x1:L,x2:L+w,y1:y(v),y2:y(v),stroke:'#ebe8df'})); svg.appendChild(svgEl('text',{x:L-6,y:y(v)+4,'text-anchor':'end'},nf0.format(v*100)+'%')); }
+  ys.forEach((d,i)=>{
+    const cx=L+gw*i+gw/2;
+    [['uSin','#141414',-bw/2-2],['uCon','#6f6c00',bw/2+2]].forEach(([k,c,off])=>{ const v=d[k]; const r=svgEl('rect',{x:cx+off-bw/2,y:y(v),width:bw,height:Math.max(0,T+h-y(v)),fill:c,rx:2}); r.appendChild(svgEl('title',{},d.anio+': '+nf0.format(v*100)+' %')); svg.appendChild(r); });
+    svg.appendChild(svgEl('text',{x:cx,y:H-10,'text-anchor':'middle'},d.anio));
+  });
+  svg.appendChild(svgEl('line',{x1:L,x2:L+w,y1:y(1),y2:y(1),stroke:'#b3261e','stroke-width':1.8}));
+  svg.appendChild(svgEl('text',{x:L+w,y:y(1)-5,'text-anchor':'end',style:'fill:#b3261e;font-weight:700'},'Capacidad'));
+}
+
+let R=null;
+function setTile(el,t){ el.dataset.final=t; if(!el._tick) el.textContent=t; }
+function renderSim(){
+  R=calc(P);
+  const y0=R.years[0];
+  $('#kHoras').textContent=nf0.format(y0.horas)+' h';
+  $('#kCosto').textContent=copM(y0.costo);
+  $('#kAhorro').textContent=copM(y0.ahorro);
+  $('#kRed').textContent=pct(R.red);
+  $('#kInv').textContent=copM(R.inv);
+  $('#kRoi').textContent=isFinite(R.roi)?(R.roi<1?'< 1 mes':nf1.format(R.roi)+' meses'):'Sin ahorro';
+  $('#kInsp').textContent=copM(R.insp);
+  const sat=$('#kSat'), box=$('#kSatBox');
+  if(R.satSin){ sat.textContent=R.satSin; box.classList.add('warn'); $('#kSatL').textContent='año en que Calidad se satura sin cambios'+(R.satCon?' (con soluciones: '+R.satCon+')':' (con soluciones: no antes de '+P.anioFin+')'); }
+  else { sat.textContent='No antes de '+P.anioFin; box.classList.remove('warn'); $('#kSatL').textContent='Calidad no se satura en el horizonte proyectado'; }
+  drawCost(R); drawLoad(R); if(typeof updSimBar==='function') updSimBar();
+  const last=R.years[R.years.length-1];
+  $('#simNote').textContent=`Costo por hora usado: COP ${nf0.format(R.costoHora)}. En ${last.anio} esperarían el equivalente a ${nf1.format(last.maq)} máquinas. La carga de Calidad incluye liberaciones, certificados, lotes y rondas, frente a ${nf0.format(P.inspectores*480*(1-P.otras/100))} minutos disponibles por turno.`;
+  // Hero tiles
+  setTile($('#tH'),nf0.format(P.espera/60*P.turnos*P.dias*12)+' h'); $('#tHm').textContent=P.espera;
+  setTile($('#tC'),'≈ '+copM(y0.costo)); $('#tCm').textContent=P.maquinas;
+  $$('#presets .chip[data-preset]').forEach(b=>{ const pr=PRESETS[b.dataset.preset]; b.classList.toggle('on', pr.maquinas===P.maquinas && pr.espera===P.espera); });
+  $$('#growthPresets .chip').forEach(b=> b.classList.toggle('on', parseFloat(b.dataset.g)===P.crec));
+}
+$$('#presets .chip[data-preset]').forEach(b=> b.addEventListener('click',()=>{ Object.assign(P,PRESETS[b.dataset.preset]); saveP(); bindValues(); renderAll(); }));
+$$('#growthPresets .chip').forEach(b=> b.addEventListener('click',()=>{ P.crec=parseFloat(b.dataset.g); saveP(); bindValues(); renderAll(); }));
+function bindValues(){ NUMS.forEach(k=>{ const el=$('#p_'+k); if(el) el.value=P[k]; }); $('#p_incMaq').checked=!!P.incMaq; }
+$('#resetBtn').addEventListener('click',e=>{ const b=e.currentTarget; if(!b.dataset.c){ b.dataset.c='1'; b.textContent='¿Seguro? Pulse otra vez para restaurar'; setTimeout(()=>{ delete b.dataset.c; b.textContent='Volver a los valores iniciales'; },4000); return; } delete b.dataset.c; b.textContent='Volver a los valores iniciales'; P=clone(DEF); $$('#simIn input.bad').forEach(x=>x.classList.remove('bad')); $$('#simIn .errmsg').forEach(x=>x.remove()); saveP(); bindValues(); renderFronts(); renderPlanStrats(); renderAll(); toast('Valores iniciales restaurados.'); });
+$('#shareBtn').addEventListener('click',()=>{
+  const data=btoa(unescape(encodeURIComponent(JSON.stringify(P))));
+  const url=location.origin+location.pathname+'#s='+data;
+  copyText(url).then(ok=> toast(ok?'Enlace copiado: abre la página con este escenario.':'No se pudo copiar; copie el enlace de la barra.'));
+  if(!navigator.clipboard) history.replaceState(null,'','#s='+data);
+});
+function copyText(t){
+  if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(()=>true,()=>fallbackCopy(t));
+  return Promise.resolve(fallbackCopy(t));
+}
+function fallbackCopy(t){ try{ const a=document.createElement('textarea'); a.value=t; document.body.appendChild(a); a.select(); const ok=document.execCommand('copy'); a.remove(); return ok; }catch(e){ return false; } }
+
+/* ---------- Plan de acción ---------- */
+const ACTIONS = [
+  {k:'base', s:'base', a:'Línea base en 1 máquina', r:'Coordinador y operarios de la máquina', w:1, d:2, ind:'≥ 90 % de arranques registrados', ben:'Costo real de la espera, medido'},
+  {k:'escalonado', s:'escalonado', a:'Arranque escalonado y canal de llamado a Calidad', r:'Producción y Calidad', w:3, d:1, ind:'100 % de llamados por el canal', ben:'Menos desplazamientos y menos fila'},
+  {k:'galgas', s:'galgas', a:'Galga y hoja estándar de la referencia piloto', r:'Calidad', w:3, d:1, ind:'100 % de liberaciones con galga', ben:'Medición en segundos, con criterio objetivo'},
+  {k:'certificado', s:'certificado', a:'Certificar 2 operarios (uno por turno)', r:'Calidad y RR. HH.', w:4, d:2, ind:'2 de 2 aprobados en prueba práctica', ben:'La máquina piloto arranca sin esperar a Calidad'},
+  {k:'digital', s:'digital', a:'Formulario digital con certificado automático', r:'Coordinador', w:4, d:2, ind:'100 % de certificados digitales', ben:'Calidad deja de transcribir'},
+  {k:'evaluacion', s:'evaluacion', a:'Evaluación y hoja A3', r:'Comité de mejora', w:6, d:1, ind:'Informe entregado', ben:'Meta: espera −30 % frente a la línea base'},
+  {k:'recepcion', s:'recepcion', a:'Recepción por niveles (NTC-ISO 2859-1)', r:'Calidad y Compras', w:9, d:4, ind:'% de lotes con certificado del proveedor', ben:'Material liberado sin esperas'},
+  {k:'kaizen', s:'kaizen', a:'Sistema de mejora continua', r:'RR. HH.', w:9, d:4, ind:'% de ideas respondidas en ≤ 7 días', ben:'Participación medible de todo el personal'},
+  {k:'fabricas', s:'fabricas', a:'Postulación a Fábricas de Productividad', r:'RR. HH. y gerencia', w:3, d:4, ind:'Postulación radicada', ben:'Hasta 60 h de consultoría subsidiada'}
+];
+const STRAT_NAMES = {base:'Línea base', escalonado:FRONTS.escalonado.name, galgas:FRONTS.galgas.name, certificado:FRONTS.certificado.name, digital:FRONTS.digital.name, recepcion:FRONTS.recepcion.name, evaluacion:'Evaluación del piloto', kaizen:'Sistema de mejora continua', fabricas:'Fábricas de Productividad'};
+const RISKS = [
+  {k:'r1', s:['certificado'], t:'Clientes o el sistema de gestión exigen que Calidad libere la primera pieza', p:2, i:3, m:'Confirmarlo antes; en esas referencias sigue liberando Calidad'},
+  {k:'r2', s:['certificado'], t:'El operario certificado deja pasar una pieza mala', p:1, i:3, m:'Solo referencias estables, galga objetiva y auditoría de Calidad por muestreo'},
+  {k:'r3', s:['kaizen'], t:'Las ideas quedan sin respuesta y se pierde la confianza', p:2, i:3, m:'Respuesta en máximo 7 días y tablero visible'},
+  {k:'r4', s:['certificado','escalonado'], t:'Los operarios lo sienten como carga extra', p:2, i:2, m:'Involucrarlos en el diseño, tiempo asignado para formación y reconocimiento'},
+  {k:'r5', s:['base'], t:'La línea base queda incompleta', p:2, i:2, m:'Hoja de solo dos datos y revisión diaria del coordinador'},
+  {k:'r6', s:['*'], t:'El piloto depende de un solo coordinador', p:2, i:2, m:'Designar un respaldo y documentar todo en esta página'},
+  {k:'r7', s:['digital'], t:'El calibrador conectado no es compatible o no hay presupuesto', p:1, i:1, m:'Formulario digital con digitación manual'}
+];
+const LV=['Baja','Media','Alta'], LVi=['Bajo','Medio','Alto'];
+let PLAN = {id:'estado', inicio:today(), acciones:{}, riesgos:{}};
+
+function isOn(s){ return FRONTS[s] ? P.fronts[s].on : !!P.extra[s]; }
+function renderPlanStrats(){
+  const box=$('#planStrats'); box.innerHTML='';
+  Object.keys(STRAT_NAMES).forEach(s=>{
+    const l=document.createElement('label'); l.style.cssText='display:flex;gap:8px;align-items:flex-start;font-weight:500;font-size:.88rem';
+    l.innerHTML=`<input type="checkbox" ${isOn(s)?'checked':''} style="width:18px;height:18px;accent-color:#141414;flex:none;margin-top:2px"> <span>${esc(STRAT_NAMES[s])}${FRONTS[s]?' <span class="pill" style="font-size:.66rem">simulador</span>':''}</span>`;
+    l.querySelector('input').addEventListener('change',e=>{ if(FRONTS[s]){ P.fronts[s].on=e.target.checked; renderFronts(); } else P.extra[s]=e.target.checked; saveP(); renderAll(); });
+    box.appendChild(l);
+  });
+}
+function addDays(iso,n){ const d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function fmtD(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return d+'/'+m; }
+function actState(a){ return PLAN.acciones[a.k]||{}; }
+function renderPlan(){
+  const acts=ACTIONS.filter(a=>isOn(a.s));
+  const t=today(); const start=PLAN.inicio||t;
+  $('#planStart').value=start;
+  let done=0,onTime=0,late=0;
+  const tb=$('#planTable tbody'); tb.innerHTML='';
+  acts.forEach(a=>{
+    const st=actState(a); const estado=st.estado||'Pendiente';
+    const fin=addDays(start,(a.w-1+a.d)*7-1);
+    const isLate=estado!=='Hecha' && t>fin;
+    if(estado==='Hecha'){ done++; if(!st.cierre || st.cierre<=fin) onTime++; }
+    if(isLate) late++;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(a.a)}</b>${isLate?' <span class="pill bad">Atrasada</span>':''}</td>
+      <td><input type="text" value="${esc(st.responsable||a.r)}" data-k="${a.k}" class="pResp" style="min-width:150px"></td>
+      <td class="mono small">S${a.w}${a.d>1?'–S'+(a.w+a.d-1):''}<br><span class="muted">${fmtD(addDays(start,(a.w-1)*7))} a ${fmtD(fin)}</span></td>
+      <td class="small">${esc(a.ind)}</td><td class="small">${esc(a.ben)}${a.k==='evaluacion'?' <a class="cite" href="#f-cp">(Colombia Productiva, 2022)</a>':''}</td>
+      <td><select data-k="${a.k}" class="pEst" style="min-width:110px">${['Pendiente','En curso','Hecha'].map(o=>`<option ${o===estado?'selected':''}>${o}</option>`).join('')}</select>${st.cierre&&estado==='Hecha'?'<div class="hint">Cerrada '+fmtD(st.cierre)+'</div>':''}</td>`;
+    tb.appendChild(tr);
+  });
+  $$('.pEst').forEach(el=> el.addEventListener('change',()=>{ const k=el.dataset.k; const st=PLAN.acciones[k]=PLAN.acciones[k]||{}; st.estado=el.value; st.cierre= el.value==='Hecha' ? (st.cierre||today()) : ''; savePlan(); }));
+  $$('.pResp').forEach(el=> el.addEventListener('change',()=>{ const k=el.dataset.k; const st=PLAN.acciones[k]=PLAN.acciones[k]||{}; st.responsable=el.value; savePlan(); }));
+  $('#pCump').textContent=acts.length?pct(done/acts.length):'–';
+  $('#pTiempo').textContent=done?pct(onTime/done):'–';
+  $('#pAtr').textContent=late; $('#pAtrBox').classList.toggle('warn',late>0);
+  $('#pBen').textContent=R?copM(R.years[0].ahorro):'–';
+  // Gantt
+  const g=$('#gantt'); const wkNow=Math.floor((new Date(t+'T12:00:00')-new Date(start+'T12:00:00'))/(7*864e5))+1;
+  let html='<div class="g-row g-head"><div class="g-name">Acción</div>'+Array.from({length:12},(_,i)=>`<div class="${i+1===wkNow?'now':''}">S${i+1}</div>`).join('')+'</div>';
+  acts.forEach(a=>{ const st=actState(a); const estado=(st.estado||'Pendiente').replace(' ',''); const fin=addDays(start,(a.w-1+a.d)*7-1); const late=estado!=='Hecha'&&t>fin;
+    html+=`<div class="g-row"><div class="g-name">${esc(a.a)}</div><div style="grid-column:${a.w+1} / span ${Math.min(a.d,13-a.w)}"><div class="g-bar ${estado} ${late?'late':''}" title="${esc(st.estado||'Pendiente')}"></div></div></div>`; });
+  g.innerHTML=html+'<div class="g-row" style="border:none"><div class="g-name small muted" style="font-weight:400">Gris: pendiente · Amarillo: en curso · Oliva: hecha · Rojo: atrasada</div></div>';
+  renderRisks();
+}
+function renderRisks(){
+  const risks=RISKS.filter(r=> r.s.includes('*') || r.s.some(isOn));
+  const val=(r,f)=> (PLAN.riesgos[r.k]&&PLAN.riesgos[r.k][f]) || r[f];
+  const tb=$('#riskTable tbody'); tb.innerHTML='';
+  risks.forEach((r,idx)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mono"><b>${idx+1}</b></td><td class="small">${esc(r.t)}</td>
+      <td><select data-k="${r.k}" data-f="p">${LV.map((o,i)=>`<option value="${i+1}" ${val(r,'p')===i+1?'selected':''}>${o}</option>`).join('')}</select></td>
+      <td><select data-k="${r.k}" data-f="i">${LVi.map((o,i)=>`<option value="${i+1}" ${val(r,'i')===i+1?'selected':''}>${o}</option>`).join('')}</select></td>
+      <td class="small">${esc(r.m)}</td>`;
+    tb.appendChild(tr);
+  });
+  $$('#riskTable select').forEach(el=> el.addEventListener('change',()=>{ const o=PLAN.riesgos[el.dataset.k]=PLAN.riesgos[el.dataset.k]||{}; o[el.dataset.f]=parseInt(el.value,10); savePlan(); }));
+  const grid=$('#riskGrid'); let h='';
+  const tint=(p,i)=>{ const s=p*i; return s>=6?'#f1c9c4':s>=3?'#fbeeb0':'#e4ecd9'; };
+  for(let p=3;p>=1;p--){
+    h+=`<div class="ax">${LV[p-1]}</div>`;
+    for(let i=1;i<=3;i++){ const dots=risks.map((r,idx)=>({r,idx})).filter(o=>val(o.r,'p')===p&&val(o.r,'i')===i).map(o=>`<span class="dot" title="${esc(o.r.t)}">${o.idx+1}</span>`).join(''); h+=`<div class="cell" style="background:${tint(p,i)}">${dots}</div>`; }
+  }
+  h+='<div class="ax"></div>'+LVi.map(x=>`<div class="ax">${x}</div>`).join('');
+  grid.innerHTML=h;
+  $('#pRiesgo').textContent=risks.filter(r=>val(r,'p')*val(r,'i')>=6).length;
+}
+let planTimer=null;
+function savePlan(){ renderPlan(); clearTimeout(planTimer); planTimer=setTimeout(()=>{ Store.upsert('plan',PLAN); toast(Store.remote?'Avance guardado en la hoja compartida.':'Avance guardado en este navegador.'); },400); }
+$('#planStart').addEventListener('change',e=>{ PLAN.inicio=e.target.value||today(); savePlan(); });
+$('#planCsv').addEventListener('click',()=>{
+  const start=PLAN.inicio||today();
+  const rows=[['Acción','Responsable','Inicio','Fin','Indicador','Beneficio','Estado','Cierre']];
+  ACTIONS.filter(a=>isOn(a.s)).forEach(a=>{ const st=actState(a); rows.push([a.a,st.responsable||a.r,addDays(start,(a.w-1)*7),addDays(start,(a.w-1+a.d)*7-1),a.ind,a.ben,st.estado||'Pendiente',st.cierre||'']); });
+  downloadCsv('plan-de-accion.csv',rows);
+});
+
+/* ---------- CSV ---------- */
+function downloadCsv(name,rows){
+  const csv='﻿'+rows.map(r=>r.map(c=>{ const s=String(c==null?'':c); return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; }).join(';')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
+}
+
+/* ---------- Línea base ---------- */
+let REGS=[];
+const minsOf = t => { const [h,m]=String(t).split(':').map(Number); return h*60+m; };
+const waitOf = r => { let d=minsOf(r.liberada)-minsOf(r.lista); if(d<0) d+=1440; return d; };
+$('#r_fecha').value=today();
+$('#regForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const r={id:uid(), fase:$('#r_fase').value, tipo:$('#r_tipo').value, fecha:$('#r_fecha').value, turno:$('#r_turno').value, maquina:$('#r_maq').value.trim(), lista:$('#r_lista').value, liberada:$('#r_lib').value, motivo:$('#r_motivo').value};
+  r.espera=waitOf(r);
+  await Store.upsert('registros',r); REGS.push(r); renderRegs();
+  $('#regMsg').textContent='Registrado: '+r.espera+' min de espera.'; $('#r_lista').value=''; $('#r_lib').value='';
+});
+function avg(a){ return a.length?a.reduce((s,x)=>s+x,0)/a.length:null; }
+function renderRegs(){
+  const arr=REGS.filter(r=>r.tipo==='Arranque de máquina');
+  const b=arr.filter(r=>r.fase==='Línea base').map(waitOf), p=arr.filter(r=>r.fase==='Piloto').map(waitOf);
+  const ab=avg(b), ap=avg(p);
+  $('#bN').textContent=REGS.length;
+  $('#bAvgB').textContent=ab==null?'–':nf1.format(ab)+' min';
+  $('#bAvgP').textContent=ap==null?'–':nf1.format(ap)+' min';
+  $('#bDelta').textContent=(ab&&ap!=null)?((ap-ab)/ab>0?'+':'')+nf0.format((ap-ab)/ab*100)+' %':'–';
+  const byM={}; REGS.forEach(r=>{ (byM[r.motivo]=byM[r.motivo]||[]).push(waitOf(r)); });
+  const ks=Object.keys(byM).sort((a,b)=>avg(byM[b])-avg(byM[a]));
+  const mx=Math.max(1,...ks.map(k=>avg(byM[k])));
+  $('#bBars').innerHTML=ks.length?ks.map(k=>`<div class="b"><span class="small">${esc(k)}</span><div class="track"><div class="fill" style="width:${avg(byM[k])/mx*100}%"></div></div><span class="mono small">${nf1.format(avg(byM[k]))} · n=${byM[k].length}</span></div>`).join(''):'<p class="small muted">Aún no hay registros.</p>';
+  $('#bBars').querySelectorAll('.b').forEach(el=> el.style.gridTemplateColumns='minmax(110px,1.2fr) 2fr 90px');
+  const tb=$('#regTable tbody'); tb.innerHTML='';
+  REGS.slice().sort((a,b)=>(b.fecha+b.lista).localeCompare(a.fecha+a.lista)).forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="mono small">${esc(r.fecha)}</td><td>${esc(r.fase)}</td><td class="small">${esc(r.tipo)}</td><td>${esc(r.turno)}</td><td>${esc(r.maquina)}</td><td class="r mono">${waitOf(r)}</td><td class="small">${esc(r.motivo)}</td><td><button class="btn ghost sm" data-id="${r.id}">Borrar</button></td>`;
+    tr.querySelector('button').addEventListener('click',async(e)=>{ const b=e.currentTarget; if(!b.dataset.c){ b.dataset.c='1'; b.textContent='¿Borrar?'; return; } await Store.remove('registros',r.id); REGS=REGS.filter(x=>x.id!==r.id); renderRegs(); });
+    tb.appendChild(tr);
+  });
+}
+$('#bUse').addEventListener('click',()=>{
+  const b=REGS.filter(r=>r.tipo==='Arranque de máquina'&&r.fase==='Línea base').map(waitOf);
+  if(!b.length){ toast('Primero registre arranques de la línea base.'); return; }
+  P.espera=Math.round(avg(b)*10)/10; saveP(); bindValues(); renderAll(); toast('Espera del simulador: '+nf1.format(P.espera)+' min.');
+});
+$('#bCsv').addEventListener('click',()=>{ const rows=[['Fecha','Fase','Tipo','Turno','Máquina o lote','Hora lista','Hora liberada','Espera (min)','Motivo']]; REGS.forEach(r=>rows.push([r.fecha,r.fase,r.tipo,r.turno,r.maquina,r.lista,r.liberada,waitOf(r),r.motivo])); downloadCsv('linea-base.csv',rows); });
+
+/* ---------- Mejoras ---------- */
+let IDEAS=[];
+const ESTADOS=['Recibida','En evaluación','Aprobada','Implementada','Descartada'];
+$('#iEmp').value=LS.get('empleados',59);
+$('#iEmp').addEventListener('input',()=>{ LS.set('empleados',parseFloat($('#iEmp').value)||59); renderIdeas(); });
+$('#ideaForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const it={id:uid(), fecha:today(), area:$('#i_area').value, nombre:$('#i_nombre').value.trim(), problema:$('#i_prob').value.trim(), idea:$('#i_idea').value.trim(), estado:'Recibida', impacto:'', esfuerzo:'', respuesta:'', fechaRespuesta:''};
+  if(!it.problema) return;
+  await Store.upsert('ideas',it); IDEAS.push(it); renderIdeas();
+  $('#i_prob').value=''; $('#i_idea').value=''; toast('Idea enviada. Gracias por participar.');
+});
+$('#comiteToggle').addEventListener('change',e=> $('#ideaList').classList.toggle('comite',e.target.checked));
+$('#iFilter').addEventListener('change',renderIdeas);
+function daysBetween(a,b){ return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5); }
+function renderIdeas(){
+  const n=IDEAS.length, emp=parseFloat($('#iEmp').value)||59;
+  const resp=IDEAS.filter(i=>i.fechaRespuesta && daysBetween(i.fecha,i.fechaRespuesta)<=7).length;
+  $('#iN').textContent=n; $('#iPer').textContent=n?new Intl.NumberFormat('es-CO',{maximumFractionDigits:2,minimumFractionDigits:2}).format(n/emp):'–';
+  $('#i7').textContent=n?pct(resp/n):'–';
+  $('#iImp').textContent=n?pct(IDEAS.filter(i=>i.estado==='Implementada').length/n):'–';
+  const Q={qw:[],pr:[],fi:[],ev:[],ne:[]};
+  IDEAS.filter(i=>i.estado!=='Descartada').forEach(i=>{ const t=esc((i.problema||'').slice(0,70)); if(!i.impacto||!i.esfuerzo) Q.ne.push(t); else if(i.impacto==='Alto'&&i.esfuerzo==='Bajo') Q.qw.push(t); else if(i.impacto==='Alto') Q.pr.push(t); else if(i.esfuerzo==='Bajo') Q.fi.push(t); else Q.ev.push(t); });
+  const li=a=>a.length?'<ul>'+a.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'<p class="small muted">—</p>';
+  $('#quad').innerHTML=`<div class="qw"><h4>Ganancias rápidas · alto impacto, bajo esfuerzo</h4>${li(Q.qw)}</div><div><h4>Proyectos · alto impacto, alto esfuerzo</h4>${li(Q.pr)}</div><div><h4>Mejoras menores · bajo impacto, bajo esfuerzo</h4>${li(Q.fi)}</div><div><h4>Revisar · bajo impacto, alto esfuerzo</h4>${li(Q.ev)}</div>`+(Q.ne.length?`<div style="grid-column:1/-1"><h4>Sin evaluar (${Q.ne.length})</h4><p class="small muted">Active el modo comité para asignar impacto y esfuerzo.</p></div>`:'');
+  const f=$('#iFilter').value; const box=$('#ideaList'); box.innerHTML='';
+  const list=IDEAS.filter(i=>!f||i.estado===f).sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  if(!list.length) box.innerHTML='<p class="small muted">Aún no hay ideas. La primera puede ser la suya.</p>';
+  list.forEach(i=>{
+    const d=document.createElement('div'); d.className='idea';
+    const cls=i.estado==='Implementada'?'ok':i.estado==='Descartada'?'bad':i.estado==='Aprobada'?'dk':'y';
+    const late=!i.fechaRespuesta && daysBetween(i.fecha,today())>7;
+    d.innerHTML=`<div class="meta"><span class="pill ${cls}">${esc(i.estado)}</span><span>${esc(i.area)}</span><span class="mono">${esc(i.fecha)}</span>${i.nombre?'<span>· '+esc(i.nombre)+'</span>':''}${late?'<span class="pill bad">Sin respuesta en más de 7 días</span>':''}${i.impacto?'<span>Impacto '+esc(i.impacto)+' · Esfuerzo '+esc(i.esfuerzo||'?')+'</span>':''}</div>
+      <div><b>Problema:</b> ${esc(i.problema)}</div>${i.idea?'<div><b>Idea:</b> '+esc(i.idea)+'</div>':''}
+      ${i.respuesta?'<div style="margin-top:6px;padding:8px 10px;background:#faf9f5;border-radius:6px" class="small"><b>Respuesta del comité ('+esc(i.fechaRespuesta)+'):</b> '+esc(i.respuesta)+'</div>':''}
+      <div class="edit"><div class="row">
+        <div><label>Estado</label><select class="e-est">${ESTADOS.map(o=>`<option ${o===i.estado?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div><label>Impacto</label><select class="e-imp"><option value="">—</option>${['Bajo','Alto'].map(o=>`<option ${o===i.impacto?'selected':''}>${o}</option>`).join('')}</select></div>
+        <div><label>Esfuerzo</label><select class="e-esf"><option value="">—</option>${['Bajo','Alto'].map(o=>`<option ${o===i.esfuerzo?'selected':''}>${o}</option>`).join('')}</select></div>
+      </div><div class="field" style="margin-top:8px"><label>Respuesta</label><textarea class="e-resp">${esc(i.respuesta)}</textarea></div>
+      <div class="btns"><button class="btn sm e-save">Guardar evaluación</button><button class="btn ghost sm e-del">Eliminar</button></div></div>`;
+    d.querySelector('.e-save').addEventListener('click',async()=>{
+      i.estado=d.querySelector('.e-est').value; i.impacto=d.querySelector('.e-imp').value; i.esfuerzo=d.querySelector('.e-esf').value;
+      const r=d.querySelector('.e-resp').value.trim(); if(r && r!==i.respuesta){ i.respuesta=r; i.fechaRespuesta=today(); } else if(!r){ i.respuesta=''; i.fechaRespuesta=''; }
+      await Store.upsert('ideas',i); renderIdeas(); toast('Evaluación guardada.');
+    });
+    d.querySelector('.e-del').addEventListener('click',async()=>{ if(!d.dataset.c){ d.dataset.c='1'; d.querySelector('.e-del').textContent='Confirmar eliminación'; return; } await Store.remove('ideas',i.id); IDEAS=IDEAS.filter(x=>x.id!==i.id); renderIdeas(); });
+    box.appendChild(d);
+  });
+}
+$('#iCsv').addEventListener('click',()=>{ const rows=[['Fecha','Área','Nombre','Problema','Idea','Estado','Impacto','Esfuerzo','Respuesta','Fecha respuesta']]; IDEAS.forEach(i=>rows.push([i.fecha,i.area,i.nombre,i.problema,i.idea,i.estado,i.impacto,i.esfuerzo,i.respuesta,i.fechaRespuesta])); downloadCsv('ideas-de-mejora.csv',rows); });
+$('#aiBtn').addEventListener('click',()=>{
+  const ideas=IDEAS.map((i,k)=>`${k+1}. [${i.area}] Problema: ${i.problema}${i.idea?' | Idea: '+i.idea:''}`).join('\n');
+  const censo=$('#censoTxt').value.trim();
+  if(!ideas && !censo){ $('#aiMsg').textContent='No hay ideas ni respuestas para analizar.'; return; }
+  const prompt=`Actúa como analista de mejora continua en una planta metalmecánica (mecanizado CNC, troquelado y mangueras de freno) en Antioquia, Colombia.
+
+Analiza las siguientes respuestas de trabajadores y entrega:
+1. Una tabla de temas: tema, número de menciones, áreas donde aparece y una cita textual representativa.
+2. Los problemas que se repiten entre áreas.
+3. Para cada tema, una estimación de impacto (alto o bajo) y esfuerzo (alto o bajo), con una línea de justificación.
+4. Las 3 ganancias rápidas recomendadas y qué dato habría que medir para confirmar cada una.
+No inventes datos que no estén en las respuestas. Si algo no se puede concluir, dilo.
+
+${ideas?'IDEAS REGISTRADAS EN LA PÁGINA:\n'+ideas+'\n\n':''}${censo?'RESPUESTAS DEL CENSO:\n'+censo:''}`;
+  const out=$('#aiOut'); out.style.display='block'; out.value=prompt;
+  copyText(prompt).then(ok=> $('#aiMsg').textContent= ok?'Copiado. Péguelo en el asistente de IA; el comité revisa el resultado.':'Seleccione y copie el texto de abajo.');
+});
+
+/* ---------- Liberación por riesgo ---------- */
+let REFS=[];
+function classify(o){
+  if(o.cliente) return {who:'Calidad', why:'el cliente exige aprobación de Calidad', c:'q'};
+  if(o.nueva||o.cambio||o.reclamo) return {who:'Calidad', why:o.nueva?'es nueva o cambió el diseño':o.cambio?'hubo cambio de troquel, herramienta o material':'tuvo reclamo reciente', c:'q'};
+  if(o.estable) return {who:'Operario certificado', why:'es estable; Calidad audita por muestreo', c:'o'};
+  return {who:'Calidad, hasta completar historial', why:'aún no tiene 10 lotes seguidos conformes', c:'w'};
+}
+const refVals=()=>({nueva:$('#f_nueva').checked,cambio:$('#f_cambio').checked,reclamo:$('#f_reclamo').checked,cliente:$('#f_cliente').checked,estable:$('#f_estable').checked});
+function showRefResult(){ const c=classify(refVals()); const el=$('#refResult'); el.className='result '+c.c; el.textContent='Libera: '+c.who+' — '+c.why+'.'; }
+$$('#refForm input[type=checkbox]').forEach(el=> el.addEventListener('change',showRefResult));
+$('#refForm').addEventListener('submit',async e=>{
+  e.preventDefault(); const v=refVals(); const c=classify(v);
+  const r=Object.assign({id:uid(), ref:$('#f_ref').value.trim(), proc:$('#f_proc').value, who:c.who},v);
+  await Store.upsert('referencias',r); REFS.push(r); renderRefs();
+  $('#refForm').reset(); showRefResult(); toast('Referencia guardada.');
+});
+function renderRefs(){
+  const n=REFS.length, op=REFS.filter(r=>r.who==='Operario certificado').length;
+  $('#fN').textContent=n; $('#fOp').textContent=n?pct(op/n):'–'; $('#fQ').textContent=n?pct((n-op)/n):'–';
+  const tb=$('#refTable tbody'); tb.innerHTML='';
+  if(!n) tb.innerHTML='<tr><td colspan="4" class="small muted">Aún no hay referencias clasificadas.</td></tr>';
+  REFS.forEach(r=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td><b>${esc(r.ref)}</b></td><td>${esc(r.proc)}</td><td><span class="pill ${r.who==='Operario certificado'?'ok':'y'}">${esc(r.who)}</span></td><td><button class="btn ghost sm">Borrar</button></td>`; tr.querySelector('button').addEventListener('click',async(e)=>{ const b=e.currentTarget; if(!b.dataset.c){ b.dataset.c='1'; b.textContent='¿Borrar?'; return; } await Store.remove('referencias',r.id); REFS=REFS.filter(x=>x.id!==r.id); renderRefs(); }); tb.appendChild(tr); });
+}
+$('#fUse').addEventListener('click',()=>{ const n=REFS.length; if(!n){ toast('Primero clasifique algunas referencias.'); return; } P.fronts.certificado.pctRefs=Math.round(REFS.filter(r=>r.who==='Operario certificado').length/n*100); saveP(); renderFronts(); renderAll(); toast('Simulador: el operario libera el '+P.fronts.certificado.pctRefs+' % de las referencias.'); });
+
+/* ---------- Plantillas ---------- */
+const TPL={
+  emp:{title:'Mapa de empatía', fields:[['quien','¿De quién es el mapa?','Operaria de máquina, turno de la mañana'],['dice','Dice','“Hay que esperar turno”; “no encuentro a la persona de calidad”'],['hace','Hace','Enciende la máquina, hace la primera pieza y espera; va al laboratorio y vuelve'],['piensa','Piensa','Gana quien llega primero; la máquina parada me retrasa la producción'],['siente','Siente','Frustración, sensación de injusticia, presión por cumplir'],['necesita','Necesita','Saber cuándo la atienden y poder arrancar sin depender de una sola persona']]},
+  why:{title:'5 porqués', fields:[['problema','Problema','Las máquinas esperan la liberación al iniciar el turno'],['p1','¿Por qué? (1)','Solo una persona de Calidad puede liberar'],['p2','¿Por qué? (2)','Todas las referencias se tratan igual, sin importar su riesgo'],['p3','¿Por qué? (3)','No hay operarios certificados ni criterios objetivos como galgas'],['p4','¿Por qué? (4)','El proceso se diseñó para inspeccionar al final'],['p5','¿Por qué? (5)','La espera no se mide, así que no aparece como problema'],['causa','Causa raíz','Liberación centralizada sin diferenciar por riesgo y sin medición'],['accion','Acción','Piloto de liberación por riesgo en 1 máquina, con línea base']]},
+  a3:{title:'Hoja A3', fields:[['titulo','Título','Liberaciones de Calidad sin espera'],['resp','Responsable y fecha',''],['antecedentes','1. Antecedentes','Por qué importa: crecimiento, Visión 2030, política de calidad'],['actual','2. Situación actual','Datos de la línea base: espera promedio y máxima, motivos'],['objetivo','3. Objetivo','Ej.: reducir 30 % la espera en la máquina piloto en 6 semanas'],['analisis','4. Análisis de causa','5 porqués, Ishikawa, testimonios'],['contra','5. Contramedidas','Frentes elegidos'],['plan','6. Plan','Qué, quién, cuándo'],['seguimiento','7. Seguimiento','Indicadores antes y después, aprendizajes, siguiente paso']]}
+};
+let curTpl='emp';
+function renderTpl(){
+  const t=TPL[curTpl], data=LS.get('tpl_'+curTpl,{});
+  const two=curTpl==='emp';
+  $('#tplBody').innerHTML=`<h3>${t.title}</h3><div class="${two?'empathy':''}">`+t.fields.map(([k,l,ph])=>`<div class="field"><label for="tp_${k}">${esc(l)}</label><textarea id="tp_${k}" data-k="${k}" placeholder="${esc(ph)}">${esc(data[k]||'')}</textarea></div>`).join('')+'</div><p class="hint">El texto gris es un ejemplo con el problema de las liberaciones.</p>';
+  $$('#tplBody textarea').forEach(el=> el.addEventListener('input',()=>{ const d=LS.get('tpl_'+curTpl,{}); d[el.dataset.k]=el.value; LS.set('tpl_'+curTpl,d); }));
+}
+$$('#tplTabs button').forEach(b=> b.addEventListener('click',()=>{ $$('#tplTabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); curTpl=b.dataset.t; renderTpl(); }));
+$('#tplClear').addEventListener('click',()=>{ LS.set('tpl_'+curTpl,{}); renderTpl(); });
+$('#tplPrint').addEventListener('click',()=>{
+  const t=TPL[curTpl], data=LS.get('tpl_'+curTpl,{});
+  $('#printArea').innerHTML=`<h2>${t.title}</h2>`+t.fields.map(([k,l,ph])=>`<h4>${esc(l)}</h4><div class="pbox">${esc(data[k]||'')}</div>`).join('')+'<p style="font-size:9pt;color:#666">Liberar sin esperar · Propuesta de '+esc(CFG.autor||'mejora continua')+'</p>';
+  document.body.classList.add('print-tpl'); window.print(); setTimeout(()=>document.body.classList.remove('print-tpl'),500);
+});
+
+/* ---------- Menú desplegable ---------- */
+const navBtn=$('#navBtn'), menu=$('#menu');
+function openMenu(o){ menu.hidden=!o; navBtn.setAttribute('aria-expanded',String(!!o)); }
+navBtn.addEventListener('click',e=>{ e.stopPropagation(); openMenu(menu.hidden); });
+document.addEventListener('click',e=>{ if(!menu.hidden && !menu.contains(e.target) && !navBtn.contains(e.target)) openMenu(false); });
+$$('#menu a').forEach(a=> a.addEventListener('click',()=>openMenu(false)));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !menu.hidden) openMenu(false); });
+const links=$$('#menu a'); const secs=links.map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.isIntersecting){ links.forEach(a=>{ const on=a.getAttribute('href')==='#'+e.target.id; a.classList.toggle('on',on); if(on) $('#navCur').textContent=a.childNodes[0].textContent.trim(); }); } }); },{rootMargin:'-45% 0px -50% 0px'});
+  secs.forEach(s=>io.observe(s));
+}
+
+/* ---------- Camel assistant: recorrido guiado ---------- */
+const CamelAssistant=(function(){
+  const shade=$('#ca-shade'), ring=$('#ca-ring'), box=$('#ca-box'), arrow=$('#ca-arrow');
+  const D=()=>{ const r=R||calc(P); return { esp:P.espera, h:nf0.format(P.espera/60*P.turnos*P.dias*12), maq:P.maquinas, costo:copM(r.years[0].costo), ahorro:copM(r.years[0].ahorro), roi:isFinite(r.roi)?nf1.format(r.roi)+' meses':'—' }; };
+  const STEPS=[
+    {id:'inicio', t:null, title:'Bienvenido a la propuesta', text:d=>`Cada máquina que espera la liberación de Calidad al iniciar el turno pierde ${d.h} horas de producción al año. Esta página presenta la propuesta de ${CFG.autor||'mejora'} para evitarlo y reúne las herramientas para hacerlo. El recorrido toma unos dos minutos.`},
+    {id:'datos', t:'.tiles', title:'Los datos clave', text:d=>`Con ${d.esp} minutos de espera por máquina, se pierden ${d.h} horas al año por cada una. Con ${d.maq} máquinas, la espera cuesta cerca de ${d.costo} al año. La propuesta se prueba en 6 semanas, con una sola máquina y sin contratar personal.`},
+    {id:'resumen', t:'.three', title:'Problema, propuesta y diferencial', text:()=>'Hoy, toda liberación depende de una sola persona por turno. Se propone repartir esa tarea de forma controlada, según el riesgo de cada referencia. Y la página no se queda en el diagnóstico: trae las herramientas para medir, probar y escalar la solución.'},
+    {id:'menu', t:'#navBtn', title:'Cómo moverse por la página', text:()=>'En el menú Secciones encuentra todo el contenido, organizado en tres partes: la propuesta, las herramientas para ponerla en marcha y los próximos pasos con las fuentes. La barra amarilla bajo el menú indica cuánto ha avanzado.'},
+    {id:'problema', t:'#problema .tbl', title:'1. El problema', text:()=>'Parte del testimonio de una operaria. La tabla muestra en qué momentos se detiene el proceso y qué efecto tiene. La causa de fondo es que hoy se inspecciona al final, en lugar de prevenir desde el puesto de trabajo.'},
+    {id:'solucion', t:'#solucion .grid3', title:'2. La solución en tres frentes', text:()=>'Primero, repartir la liberación según el riesgo de cada referencia. Segundo, digitalizar las mediciones y los certificados. Tercero, recibir la materia prima por niveles, según el historial de cada proveedor.'},
+    {id:'piloto', t:'#solucion .steps', title:'Un piloto antes de decidir', text:()=>'Antes de cambiar algo, se mide. El piloto dura seis semanas, en una máquina y con el personal actual. En la semana 6 se decide con datos si se amplía, se ajusta o se descarta.'},
+    {id:'masalla', t:'#mas-alla .grid3', title:'3. Más allá de este problema', text:()=>'La propuesta convierte el Censo en un sistema permanente: todas las personas pueden aportar ideas, las decisiones se apoyan en datos y la inteligencia artificial ayuda a organizar la información, siempre con revisión humana.'},
+    {id:'metodo', t:'#metodo .phases', title:'4. Cómo se valida', text:()=>'Se usa Design Thinking, que va de entender a las personas a probar soluciones, junto con el ciclo PHVA que la empresa ya aplica. Las dos primeras fases ya están hechas.'},
+    {id:'herramientas', t:'#herramientas .bento', title:'Parte 2: las herramientas', text:()=>'Aquí la página deja de explicar y empieza a trabajar. Hay seis herramientas; cada una tiene su número, su color y tres pasos de uso. Se pueden abrir en cualquier orden.'},
+    {id:'simulador', t:'#presets', title:'Herramienta 1: el simulador', text:()=>'Aquí empiezan las herramientas. Elija un escenario o escriba los datos de su área: número de máquinas, tiempos, costos y crecimiento esperado.'},
+    {id:'resultados', t:'.sim-out .kpis', title:'Resultados al instante', text:d=>`Cada cambio recalcula el costo de la espera, el ahorro y el tiempo para recuperar la inversión. Con los valores actuales, el ahorro es de ${d.ahorro} al año y la inversión se recupera en ${d.roi}. El botón “Copiar enlace” permite compartir su escenario.`},
+    {id:'plan', t:'#plan .kpis', title:'Herramienta 2: plan de acción', text:()=>'Las soluciones elegidas se convierten en tareas con responsable y fecha. Al registrar el avance, se actualizan el cumplimiento, los atrasos y el mapa de riesgos.'},
+    {id:'lineabase', t:'#regForm', title:'Herramienta 3: línea base', text:()=>'Aquí se registran los tiempos reales de espera. Con esos datos se reemplazan los supuestos del simulador y se compara el antes y el después del piloto.'},
+    {id:'mejoras', t:'#ideaForm', title:'Herramienta 4: ideas de todos', text:()=>'Cualquier persona puede registrar un problema o una idea, incluso sin dar su nombre. El comité la evalúa, responde en máximo 7 días y todos pueden ver en qué estado está.'},
+    {id:'riesgo', t:'#refForm', title:'Herramienta 5: liberación por riesgo', text:()=>'Con cinco preguntas se define si una referencia la libera Calidad o un operario certificado. Así el cambio se hace de forma controlada, referencia por referencia.'},
+    {id:'plantillas', t:'#tplTabs', title:'Herramienta 6: plantillas', text:()=>'Mapa de empatía, 5 porqués y hoja A3, listos para este o cualquier otro problema que surja del Censo. Se pueden imprimir o guardar en PDF.'},
+    {id:'pedido', t:'#pedido .grid2', title:'Lo que se pide', text:()=>'Para empezar no se necesita presupuesto: basta con autorizar dos semanas de medición y una reunión de 30 minutos con Calidad y Producción.'},
+    {id:'fuentes', t:'#documentacion .tbl', title:'Respaldo de la información', text:()=>'Cada dato de la página indica su autor y su año. Al hacer clic en una cita, se llega a la fuente correspondiente en esta lista.'},
+    {id:'fin', t:'#tourBtn', title:'Fin del recorrido', text:()=>'Puede repetir el recorrido cuando quiera desde este botón. Además, cada sección tiene un botón amarillo para explicarla por separado.'}
+  ];
+  let i=-1, target=null, pending=0, rafId=0;
+  const isMobile=()=>window.innerWidth<=560;
+  function scrollToTarget(el){
+    if(!el || el.closest('.topbar')) return;
+    const r=el.getBoundingClientRect(), vh=window.innerHeight;
+    let top;
+    if(isMobile()) top=window.scrollY+r.top-72;
+    else if(r.height<vh-340) top=window.scrollY+r.top+r.height/2-vh/2+40;
+    else top=window.scrollY+r.top-80;
+    window.scrollTo({top:Math.max(0,top),behavior:'smooth'});
+  }
+  function place(){
+    rafId=0;
+    if(i<0) return;
+    const vw=window.innerWidth, vh=window.innerHeight, m=16, pad=8;
+    if(!target){ ring.style.display='none'; shade.classList.add('dim'); box.classList.add('center'); arrow.style.display='none'; return; }
+    shade.classList.remove('dim'); box.classList.remove('center'); ring.style.display='block';
+    const r=target.getBoundingClientRect();
+    const top=Math.max(4,r.top-pad), left=Math.max(4,r.left-pad);
+    const bottom=Math.min(vh-4,r.bottom+pad), right=Math.min(vw-4,r.right+pad);
+    ring.style.top=top+'px'; ring.style.left=left+'px'; ring.style.width=Math.max(0,right-left)+'px'; ring.style.height=Math.max(0,bottom-top)+'px';
+    if(isMobile()){ arrow.style.display='none'; return; }
+    const bw=box.offsetWidth, bh=box.offsetHeight;
+    let bt, side;
+    if(vh-bottom > bh+m+14){ side='below'; bt=bottom+14; }
+    else if(top-56 > bh+m+14){ side='above'; bt=top-14-bh; }
+    else { side='inside'; bt=vh-bh-m; }
+    bt=Math.min(Math.max(60,bt),vh-bh-m);
+    const cx=(left+right)/2;
+    const bl=Math.min(Math.max(m,cx-bw/2),vw-bw-m);
+    box.style.top=bt+'px'; box.style.left=bl+'px';
+    if(side==='inside'){ arrow.style.display='none'; }
+    else { arrow.style.display='block'; arrow.style.left=Math.min(Math.max(16,cx-bl-8),bw-32)+'px'; arrow.style.top=side==='below'?'-8px':''; arrow.style.bottom=side==='above'?'-8px':''; }
+  }
+  const onMove=()=>{ if(!rafId) rafId=requestAnimationFrame(place); };
+  function onKey(e){ if(e.key==='Escape') end(); else if(e.key==='ArrowRight') next(); else if(e.key==='ArrowLeft' && i>0) show(i-1); }
+  function show(n){
+    i=Math.max(0,Math.min(STEPS.length-1,n)); const st=STEPS[i];
+    target=st.t?document.querySelector(st.t):null;
+    $('#ca-title').textContent=st.title; $('#ca-text').textContent=st.text(D());
+    $('#ca-count').textContent=i===0?'':i+' de '+(STEPS.length-1);
+    $('#ca-bar').style.width=(i/(STEPS.length-1)*100)+'%';
+    $('#ca-prev').style.display=i<=1?'none':'';
+    $('#ca-next').textContent=i===0?'Comenzar recorrido':i===STEPS.length-1?'Terminar':'Siguiente';
+    $('#ca-skip').textContent=i===0?'Ahora no':'Salir';
+    scrollToTarget(target);
+    place(); clearTimeout(pending); pending=setTimeout(place,500); setTimeout(place,900);
+    $('#ca-next').focus({preventScroll:true});
+  }
+  function next(){ if(i>=STEPS.length-1) end(); else show(i+1); }
+  function start(at){
+    openMenu(false);
+    shade.style.display='block'; box.style.display='block';
+    window.addEventListener('scroll',onMove,{passive:true}); window.addEventListener('resize',onMove); document.addEventListener('keydown',onKey);
+    show(typeof at==='number' && at>=0 ? at : 0);
+  }
+  function end(){
+    i=-1; shade.style.display='none'; ring.style.display='none'; box.style.display='none'; shade.classList.remove('dim');
+    window.removeEventListener('scroll',onMove); window.removeEventListener('resize',onMove); document.removeEventListener('keydown',onKey);
+    LS.set('ca_visto',true);
+  }
+  $('#ca-next').addEventListener('click',next);
+  $('#ca-prev').addEventListener('click',()=>show(i-1));
+  $('#ca-skip').addEventListener('click',end);
+  return {start,end,stepOf:id=>STEPS.findIndex(s=>s.id===id)};
+})();
+$('#tourBtn').addEventListener('click',()=>CamelAssistant.start(1));
+$$('[data-ca-start]').forEach(b=> b.addEventListener('click',()=>CamelAssistant.start(1)));
+{ const HELP={problema:'problema',solucion:'solucion','mas-alla':'masalla',metodo:'metodo',simulador:'simulador',plan:'plan','linea-base':'lineabase',mejoras:'mejoras',riesgo:'riesgo',plantillas:'plantillas',pedido:'pedido',documentacion:'fuentes'};
+  Object.keys(HELP).forEach(sec=>{ const h=document.querySelector('#'+sec+' .sec-head'); if(!h) return; const b=document.createElement('button'); b.type='button'; b.className='ca-help'; b.innerHTML='<span>?</span>Explicar esta sección'; b.addEventListener('click',()=>CamelAssistant.start(CamelAssistant.stepOf(HELP[sec]))); h.appendChild(b); }); }
+
+/* ---------- v3: tablas apiladas, acordeones, barra de resultados y movimiento ---------- */
+function labelTables(){ $$('.tbl.stack table').forEach(t=>{ const hs=[...t.querySelectorAll('thead th')].map(th=>th.textContent.trim()); t.querySelectorAll('tbody tr').forEach(tr=>[...tr.children].forEach((td,i)=>{ if(!td.hasAttribute('data-label')) td.setAttribute('data-label',hs[i]||''); })); }); }
+labelTables();
+new MutationObserver(labelTables).observe(document.body,{childList:true,subtree:true});
+if(window.innerWidth>900) $$('details.acc').forEach(d=>d.open=true);
+$('#dataNote').textContent=Store.remote?'Los datos que registre en estas herramientas se guardan en la hoja compartida y los ve todo el equipo.':'Por ahora, los datos que registre en estas herramientas se guardan solo en este navegador. Se pueden exportar en CSV o conectar a una hoja compartida.';
+
+/* Barra fija de resultados del simulador (móvil) */
+const simBar=$('#simBar'); let simInView=false, outInView=false;
+function updSimBar(){ if(!simBar||!R) return; const y0=R.years[0]; $('#sbC').textContent=copM(y0.costo); $('#sbA').textContent=copM(y0.ahorro); $('#sbR').textContent=isFinite(R.roi)?(R.roi<1?'< 1 mes':nf1.format(R.roi)+' m'):'—'; }
+function togSimBar(){ simBar.classList.toggle('show', window.innerWidth<=900 && simInView && !outInView); }
+updSimBar();
+if('IntersectionObserver' in window){
+  new IntersectionObserver(es=>{ es.forEach(e=>{ if(e.target.id==='simIn') simInView=e.isIntersecting; else outInView=e.isIntersecting; }); togSimBar(); },{threshold:0}).observe($('#simIn'));
+  new IntersectionObserver(es=>{ es.forEach(e=>{ outInView=e.isIntersecting; }); togSimBar(); },{threshold:0,rootMargin:'0px 0px -35% 0px'}).observe($('.sim-out .kpis'));
+}
+$('#sbGo').addEventListener('click',()=>{ const t=$('.sim-out'); window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-64,behavior:'smooth'}); });
+
+/* Movimiento (inspirado en Aceternity UI), respetando "reducir movimiento" */
+const MOTION=!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) && 'IntersectionObserver' in window;
+// Barra de progreso
+const prog=$('#progress');
+const onProg=()=>{ const h=document.documentElement.scrollHeight-window.innerHeight; prog.style.transform='scaleX('+(h>0?Math.min(1,window.scrollY/h):0)+')'; };
+window.addEventListener('scroll',onProg,{passive:true}); onProg();
+// Brillo bajo el cursor
+$$('.card:not(.three .card), .kpi, .bento a, .step, .phase').forEach(el=>el.classList.add('glow'));
+if(window.matchMedia && window.matchMedia('(hover:hover)').matches){
+  document.addEventListener('pointermove',e=>{ const g=e.target.closest && e.target.closest('.glow'); if(!g) return; const r=g.getBoundingClientRect(); g.style.setProperty('--mx',(e.clientX-r.left)+'px'); g.style.setProperty('--my',(e.clientY-r.top)+'px'); },{passive:true});
+}
+// Destello en indicadores cuando cambian
+setTimeout(()=>{ const mo=new MutationObserver(ms=>{ ms.forEach(m=>{ const k=m.target.closest? m.target.closest('.kpi') : (m.target.parentElement&&m.target.parentElement.closest('.kpi')); if(k){ k.classList.remove('flash'); void k.offsetWidth; k.classList.add('flash'); } }); }); $$('.kpi .v').forEach(v=>mo.observe(v,{childList:true,characterData:true,subtree:true})); },1500);
+if(MOTION){
+  // Texto que aparece palabra por palabra
+  const textGen=(el,b,s)=>{ const words=el.textContent.trim().split(/\s+/); el.style.setProperty('--b',b+'ms'); el.style.setProperty('--s',s+'ms'); el.innerHTML=words.map((w,i)=>`<span class="tgw" style="--i:${i}">${esc(w)}</span>`).join(' '); };
+  textGen($('.hero h1'),0,140); textGen($('.hero .lead'),420,28);
+  // Contadores en las cifras del inicio
+  const tickEl=el=>{ const fin=el.dataset.final||el.textContent; const m=fin.match(/^(\D*?)(\d[\d.]*(?:,\d+)?)(.*)$/); if(!m) return; const dec=(m[2].split(',')[1]||'').length; const target=parseFloat(m[2].replace(/\./g,'').replace(',','.')); const fmt=new Intl.NumberFormat('es-CO',{minimumFractionDigits:dec,maximumFractionDigits:dec}); el._tick=true; const t0=performance.now(), dur=1500; const f=now=>{ const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3); el.textContent=m[1]+fmt.format(target*e)+m[3]; if(k<1) requestAnimationFrame(f); else { el._tick=false; el.textContent=el.dataset.final||fin; } }; requestAnimationFrame(f); };
+  const tio=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ tickEl(e.target); tio.unobserve(e.target); } }),{threshold:.6});
+  ['#tH','#tC'].forEach(s=>tio.observe($(s)));
+  // Aparición al desplazarse
+  const RV=$$('.three .card, #problema blockquote, .tbl, .callout, .grid3 > .card, .step, .phase, .bento a, .toolframe, .sec-head h2, .grid2 > .card, .grid2 > ol, .zone-label').filter(el=>!el.closest('.toolframe')||el.classList.contains('toolframe')).filter(el=>!el.closest('.hero'));
+  RV.forEach(el=>{ const sib=[...el.parentNode.children].filter(x=>RV.includes(x)); el.style.setProperty('--d',Math.min(5,sib.indexOf(el))*90+'ms'); el.classList.add('rv'); });
+  const rio=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); rio.unobserve(e.target); } }),{rootMargin:'0px 0px -8% 0px',threshold:.08});
+  RV.forEach(el=>rio.observe(el));
+  // Lámpara de la zona de herramientas
+  const lio=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); lio.unobserve(e.target); } }),{threshold:.3});
+  $$('.lamp').forEach(l=>lio.observe(l));
+} else { $$('.lamp').forEach(l=>l.classList.add('in')); }
+
+/* ---------- Inicio ---------- */
+function renderAll(){ renderSim(); renderPlan(); }
+bindInputs(); renderFronts(); renderPlanStrats(); renderAll(); renderTpl(); renderRefs(); renderIdeas(); renderRegs(); showRefResult();
+if(!SHARED && !LS.get('ca_visto',false)) setTimeout(()=>CamelAssistant.start(0),900);
+(async()=>{
+  const [regs,ideas,refs,plan]=await Promise.all([Store.list('registros'),Store.list('ideas'),Store.list('referencias'),Store.list('plan')]);
+  REGS=regs; IDEAS=ideas; REFS=refs;
+  const st=plan.find(p=>p.id==='estado'); if(st) PLAN=Object.assign({id:'estado',inicio:today(),acciones:{},riesgos:{}},st);
+  renderRegs(); renderIdeas(); renderRefs(); renderPlan();
+})();
+})();
+</script>
+</body>
+</html>
