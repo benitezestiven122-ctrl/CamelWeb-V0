@@ -471,6 +471,23 @@ input.bad{border-color:var(--red)!important;background:var(--red-2)}
   .zone-tools,.zone-banner{background:#fff!important}
   .simbar,#progress,.spotlight,.lamp{display:none!important}
 }
+/* IA en otras áreas */
+.ia-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.ia-card{display:flex;flex-direction:column;gap:8px;padding:18px}
+.ia-card[hidden]{display:none}
+.ia-card h3{font-size:1.08rem;margin:2px 0 0}
+.ia-card p{margin:0}
+.ia-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ia-n{font-family:var(--mono);font-size:.78rem;font-weight:600;color:var(--olive)}
+.ia-area{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:right}
+.ia-data{margin-top:auto;background:var(--ink);color:#d6d4cc;border-radius:8px;padding:12px;font-size:.82rem;line-height:1.4}
+.ia-data b{display:block;font-family:var(--mono);font-size:1.5rem;color:var(--yellow);line-height:1.1;margin-bottom:4px}
+.ia-data .cite{color:var(--yellow);border-color:var(--yellow)}
+.ia-tags{display:flex;gap:6px;flex-wrap:wrap}
+.ia-road .card{padding:16px}
+.ia-road h4{margin:.3em 0 .2em}
+@media (max-width:1000px){.ia-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.ia-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -490,6 +507,7 @@ input.bad{border-color:var(--red)!important;background:var(--red-2)}
         <a href="#problema">Problema<small>Qué pasa hoy y por qué</small></a>
         <a href="#solucion">Solución<small>Tres frentes y piloto mínimo</small></a>
         <a href="#mas-alla">Más allá<small>Participación, datos e IA</small></a>
+        <a href="#ia-areas">IA en otras áreas<small>Dónde más puede ayudar la tecnología</small></a>
         <a href="#metodo">Método<small>Design Thinking + PHVA</small></a>
       </div>
       <div><h5>Herramientas</h5>
@@ -620,13 +638,93 @@ input.bad{border-color:var(--red)!important;background:var(--red-2)}
           <li><b>Con meses de datos:</b> detección de desviaciones y visión artificial, idealmente con el SENA o una universidad.</li>
         </ul>
         <p class="small">El 42 % de las empresas colombianas usa IA, pero solo el 18 % tiene una estrategia y el 74 % se queda en usos básicos <a class="cite" href="#f-aws">(Strand Partners para AWS, 2026)</a>. Aplicarla a un problema concreto de planta pone a la empresa por delante del promedio.</p>
+        <p class="small"><a href="#ia-areas">Vea en qué otras áreas se puede aplicar →</a></p>
       </div>
     </div>
   </div>
 </section>
 
+<!-- IA EN OTRAS AREAS -->
+<section id="ia-areas" class="alt">
+  <div class="wrap">
+    <div class="sec-head"><span class="tag">03b · Escalar</span><h2>La IA en otras áreas de Camel</h2></div>
+    <p class="intro">Lo que esta página hace con las liberaciones se puede repetir en otras áreas: partir de un problema real, reunir sus datos y construir una herramienta a la medida. Estos son ocho campos donde ya hay resultados medidos en otras empresas.</p>
+    <div class="presets ia-filter" id="iaFilter" role="group" aria-label="Filtrar por tipo de impacto">
+      <button class="chip on" type="button" data-f="">Todas</button>
+      <button class="chip" type="button" data-f="prod">Producción</button>
+      <button class="chip" type="button" data-f="cal">Calidad</button>
+      <button class="chip" type="button" data-f="bien">Bienestar del trabajador</button>
+      <button class="chip" type="button" data-f="din">Ahorro de dinero</button>
+    </div>
+    <div class="ia-grid" id="iaGrid">
+      <article class="card ia-card" data-t="prod din">
+        <div class="ia-top"><span class="ia-n">01</span><span class="ia-area">Mantenimiento</span></div>
+        <h3>Prensas y CNC que avisan antes de fallar</h3>
+        <p class="small">Sensores de vibración y consumo en prensas y tornos, más un contador de golpes por troquel, para programar el mantenimiento antes de la falla.</p>
+        <div class="ia-data"><b>+10–20 %</b><span>de disponibilidad de los equipos y −5–10 % en costos de mantenimiento <a class="cite" href="#f-deloitte">(Deloitte, 2017)</a></span></div>
+        <div class="ia-tags"><span class="pill">Producción</span><span class="pill">Ahorro</span></div>
+      </article>
+      <article class="card ia-card" data-t="cal din">
+        <div class="ia-top"><span class="ia-n">02</span><span class="ia-area">Calidad</span></div>
+        <h3>Inspección visual de piezas</h3>
+        <p class="small">Una cámara con un modelo entrenado con fotos de piezas troqueladas y mangueras de Camel, que detecta rebabas, fisuras o faltantes a la salida de la máquina.</p>
+        <div class="ia-data"><b>−49 %</b><span>de defectos en menos de cuatro meses en Agilent; VitrA Karo redujo 68 % el desperdicio <a class="cite" href="#f-mck">(McKinsey, 2024)</a></span></div>
+        <div class="ia-tags"><span class="pill">Calidad</span><span class="pill">Ahorro</span></div>
+      </article>
+      <article class="card ia-card" data-t="prod bien">
+        <div class="ia-top"><span class="ia-n">03</span><span class="ia-area">Conocimiento de planta</span></div>
+        <h3>Asistente de procedimientos</h3>
+        <p class="small">Un asistente que responde, desde el celular o una pantalla en planta, cómo ajustar una máquina, qué tolerancia tiene una referencia o qué hacer ante una falla.</p>
+        <div class="ia-data"><b>−40 %</b><span>en tiempo de reparación y paradas no planeadas, y casi 40 % menos tiempo de inducción de técnicos en ACG Capsules <a class="cite" href="#f-mck">(McKinsey, 2024)</a></span></div>
+        <div class="ia-tags"><span class="pill">Producción</span><span class="pill">Bienestar</span></div>
+      </article>
+      <article class="card ia-card" data-t="prod din">
+        <div class="ia-top"><span class="ia-n">04</span><span class="ia-area">Planeación</span></div>
+        <h3>Programación de pedidos a la medida</h3>
+        <p class="small">Un programador que ordena los trabajos de troquelado y mecanizado según fechas de entrega, cambios de troquel y disponibilidad de máquinas.</p>
+        <div class="ia-data"><b>hasta 95 %</b><span>del tiempo de producción de una pyme de lámina metálica es espera entre operaciones; el proyecto busca reducirla hasta 50 % <a class="cite" href="#f-twente">(Universidad de Twente, 2025)</a></span></div>
+        <div class="ia-tags"><span class="pill">Producción</span><span class="pill">Ahorro</span></div>
+      </article>
+      <article class="card ia-card" data-t="bien din">
+        <div class="ia-top"><span class="ia-n">05</span><span class="ia-area">Seguridad y salud</span></div>
+        <h3>Prevención de accidentes y lesiones</h3>
+        <p class="small">Visión artificial que alerta si alguien entra en la zona de riesgo de una prensa y análisis de posturas en puestos de carga, para corregir antes de que haya una lesión.</p>
+        <div class="ia-data"><b>5,18</b><span>accidentes por cada 100 trabajadores en Antioquia en 2025, la tasa más alta del país; la manufactura sumó 87.036 accidentes en Colombia <a class="cite" href="#f-ccs">(CCS, 2026)</a></span></div>
+        <div class="ia-tags"><span class="pill">Bienestar</span><span class="pill">Ahorro</span></div>
+      </article>
+      <article class="card ia-card" data-t="bien">
+        <div class="ia-top"><span class="ia-n">06</span><span class="ia-area">Ergonomía</span></div>
+        <h3>Menos carga física en tareas repetitivas</h3>
+        <p class="small">Sensores portátiles o apoyos mecánicos en tareas de carga y alimentación de prensas, elegidos con datos de los propios puestos.</p>
+        <div class="ia-data"><b>70 %</b><span>de los trabajadores encuestados tiene síntomas musculoesqueléticos; más del 70 % de quienes usan estas tecnologías reporta mayor satisfacción <a class="cite" href="#f-nsc">(National Safety Council, 2026)</a></span></div>
+        <div class="ia-tags"><span class="pill">Bienestar</span></div>
+      </article>
+      <article class="card ia-card" data-t="din prod">
+        <div class="ia-top"><span class="ia-n">07</span><span class="ia-area">Energía</span></div>
+        <h3>Consumo eléctrico bajo control</h3>
+        <p class="small">Medidores en prensas, compresores y hornos, con un tablero que muestra picos, fugas de aire y consumo por pieza producida.</p>
+        <div class="ia-data"><b>−11 %</b><span>de energía y +15 % de producción con IA en la acería CITIC Pacific Special Steel <a class="cite" href="#f-mck">(McKinsey, 2024)</a></span></div>
+        <div class="ia-tags"><span class="pill">Ahorro</span><span class="pill">Producción</span></div>
+      </article>
+      <article class="card ia-card" data-t="din prod">
+        <div class="ia-top"><span class="ia-n">08</span><span class="ia-area">Compras y servicio al cliente</span></div>
+        <h3>Pronósticos, inventario y cotizaciones</h3>
+        <p class="small">Pronóstico de demanda para comprar lámina y barra a tiempo, y un asistente que ayuda a preparar cotizaciones y responder a los clientes.</p>
+        <div class="ia-data"><b>+14 %</b><span>de productividad en atención con un asistente de IA, +34 % en personal nuevo, y más permanencia en el cargo <a class="cite" href="#f-nber">(Brynjolfsson et al., 2023)</a></span></div>
+        <div class="ia-tags"><span class="pill">Ahorro</span><span class="pill">Producción</span></div>
+      </article>
+    </div>
+    <div class="grid3 ia-road">
+      <div class="card"><span class="ia-n">Paso 1</span><h4>Datos que ya existen</h4><p class="small">Censo, registros de calidad, órdenes de producción y mantenimiento. No requieren inversión.</p></div>
+      <div class="card"><span class="ia-n">Paso 2</span><h4>Herramientas simples</h4><p class="small">Formularios, tableros y asistentes como los de esta página, hechos a la medida de cada área.</p></div>
+      <div class="card"><span class="ia-n">Paso 3</span><h4>Sensores y modelos</h4><p class="small">Cuando los datos demuestran el valor: sensores, cámaras y modelos predictivos, idealmente con apoyo del SENA o una universidad.</p></div>
+    </div>
+    <p class="small muted" style="margin-top:16px">Los resultados son de otras empresas, muchas de ellas grandes, y sirven como referencia de lo que es posible. El impacto en Camel dependerá de sus propios datos; por eso se empieza con pilotos pequeños y medibles, como el de esta propuesta.</p>
+  </div>
+</section>
+
 <!-- METODO -->
-<section id="metodo" class="alt">
+<section id="metodo">
   <div class="wrap">
     <div class="sec-head"><span class="tag">04 · Validación</span><h2>Design Thinking + PHVA</h2></div>
     <p class="intro">Design Thinking sirve para entender el problema y probar soluciones; el PHVA que ya usa la empresa, para estandarizarlas. Testani documenta esta integración con Lean Six Sigma <a class="cite" href="#f-testani">(Testani, 2021)</a>.</p>
@@ -963,6 +1061,12 @@ input.bad{border-color:var(--red)!important;background:var(--red-2)}
           <tr id="f-judge"><td>Judge Tool</td><td>2026</td><td><a href="https://www.judgetool.com/products/mitutoyo-u-wave-fit-wireless-packages/" target="_blank" rel="noopener">Mitutoyo U-WAVE: paquetes inalámbricos</a></td><td>Calibrador conectado desde unos USD 290 (precio en EE. UU.)</td></tr>
           <tr id="f-decretos"><td>Gobierno de Colombia, Decretos 1469 y 1470 de 2025</td><td>2025</td><td><a href="https://blog.alegra.com/colombia/salario-minimo-en-colombia-2026/" target="_blank" rel="noopener">Salario mínimo 2026 (resumen de Alegra)</a></td><td>COP 1.750.905 al mes; hora mínima de COP 7.295</td></tr>
           <tr id="f-indeed"><td>Indeed Colombia</td><td>2026</td><td><a href="https://co.indeed.com/career/inspector-de-calidad/salaries" target="_blank" rel="noopener">Salario de inspector de calidad</a></td><td>Promedio de COP 1.886.912 en Medellín</td></tr>
+          <tr id="f-deloitte"><td>Deloitte (Coleman, C. et al.)</td><td>2017</td><td><a href="https://www.deloitte.com/content/dam/assets-shared/legacy/docs/insights/2022/DUP_Making-maintenance-smarter.pdf" target="_blank" rel="noopener">Making maintenance smarter: Predictive maintenance and the digital supply network</a></td><td>Mantenimiento predictivo: +10–20 % de disponibilidad, −5–10 % de costos, −20–50 % de tiempo de planeación</td></tr>
+          <tr id="f-mck"><td>McKinsey &amp; Company (Bristol, H. et al.)</td><td>2024</td><td><a href="https://www.mckinsey.com/capabilities/operations/our-insights/how-manufacturings-lighthouses-are-capturing-the-full-value-of-ai" target="_blank" rel="noopener">How manufacturing’s Lighthouses are capturing the full value of AI</a></td><td>Casos Agilent, VitrA Karo, ACG Capsules, CITIC Pacific Special Steel</td></tr>
+          <tr id="f-nber"><td>Brynjolfsson, E., Li, D. y Raymond, L.</td><td>2023</td><td><a href="https://www.nber.org/papers/w31161" target="_blank" rel="noopener">Generative AI at Work (NBER Working Paper 31161)</a></td><td>+14 % de productividad; +34 % en personal nuevo; 5.179 agentes</td></tr>
+          <tr id="f-twente"><td>Universidad de Twente y Suplacon (Holland High Tech)</td><td>2025</td><td><a href="https://hollandhightech.nl/en/programmes-and-projects/projects/streamlining-sheet-metal-manufacturing-through-intelligent-scheduling" target="_blank" rel="noopener">SmartFlow: programación inteligente en manufactura de lámina metálica</a></td><td>Hasta 95 % del tiempo es espera; meta de reducirla hasta 50 % (proyecto en curso)</td></tr>
+          <tr id="f-ccs"><td>Consejo Colombiano de Seguridad, reseñado por El Colombiano</td><td>2026</td><td><a href="https://www.elcolombiano.com/negocios/antioquia-lidera-accidentalidad-laboral-colombia-2025-datos-ccs-KD35368992" target="_blank" rel="noopener">Antioquia lidera la accidentalidad laboral en 2025</a></td><td>Tasa de 5,18 por 100 trabajadores en Antioquia; 87.036 accidentes en manufactura</td></tr>
+          <tr id="f-nsc"><td>National Safety Council, reseñado por Claims Journal</td><td>2026</td><td><a href="https://www.claimsjournal.com/news/national/2026/04/10/336771.htm" target="_blank" rel="noopener">Frontline Worker Perceptions of MSD Prevention Technology</a></td><td>70 % con síntomas musculoesqueléticos; más del 70 % reporta mayor satisfacción</td></tr>
           <tr id="f-icontec"><td>ICONTEC</td><td>—</td><td>NTC-ISO 2859-1, planes de muestreo por atributos</td><td>Inspección de recepción por niveles</td></tr>
           <tr id="f-testani"><td>Testani</td><td>2021</td><td><a href="https://ieworldconference.org/content/SISE2021/Papers/Testani.pdf" target="_blank" rel="noopener">Design Thinking y DMAIC (IISE Annual Conference)</a></td><td>Integración de Design Thinking con Lean Six Sigma</td></tr>
           <tr id="f-upm"><td>Universidad Politécnica de Madrid</td><td>2016</td><td><a href="https://oa.upm.es/44161/" target="_blank" rel="noopener">Trabajo de fin de grado sobre Hoshin y Design Thinking</a></td><td>Desplegar Hoshin desde la fase de empatizar</td></tr>
@@ -1492,6 +1596,7 @@ const CamelAssistant=(function(){
     {id:'solucion', t:'#solucion .grid3', title:'2. La solución en tres frentes', text:()=>'Primero, repartir la liberación según el riesgo de cada referencia. Segundo, digitalizar las mediciones y los certificados. Tercero, recibir la materia prima por niveles, según el historial de cada proveedor.'},
     {id:'piloto', t:'#solucion .steps', title:'Un piloto antes de decidir', text:()=>'Antes de cambiar algo, se mide. El piloto dura seis semanas, en una máquina y con el personal actual. En la semana 6 se decide con datos si se amplía, se ajusta o se descarta.'},
     {id:'masalla', t:'#mas-alla .grid3', title:'3. Más allá de este problema', text:()=>'La propuesta convierte el Censo en un sistema permanente: todas las personas pueden aportar ideas, las decisiones se apoyan en datos y la inteligencia artificial ayuda a organizar la información, siempre con revisión humana.'},
+    {id:'ia', t:'#iaGrid', title:'Hacia dónde puede crecer', text:()=>'Este mismo método sirve para otras áreas: mantenimiento, calidad, seguridad, energía, planeación y compras. Cada tarjeta muestra una herramienta posible para Camel y un resultado real medido en otra empresa. Puede filtrarlas por tipo de impacto.'},
     {id:'metodo', t:'#metodo .phases', title:'4. Cómo se valida', text:()=>'Se usa Design Thinking, que va de entender a las personas a probar soluciones, junto con el ciclo PHVA que la empresa ya aplica. Las dos primeras fases ya están hechas.'},
     {id:'herramientas', t:'#herramientas .bento', title:'Parte 2: las herramientas', text:()=>'Aquí la página deja de explicar y empieza a trabajar. Hay seis herramientas; cada una tiene su número, su color y tres pasos de uso. Se pueden abrir en cualquier orden.'},
     {id:'simulador', t:'#presets', title:'Herramienta 1: el simulador', text:()=>'Aquí empiezan las herramientas. Elija un escenario o escriba los datos de su área: número de máquinas, tiempos, costos y crecimiento esperado.'},
@@ -1573,7 +1678,7 @@ const CamelAssistant=(function(){
 })();
 $('#tourBtn').addEventListener('click',()=>CamelAssistant.start(1));
 $$('[data-ca-start]').forEach(b=> b.addEventListener('click',()=>CamelAssistant.start(1)));
-{ const HELP={problema:'problema',solucion:'solucion','mas-alla':'masalla',metodo:'metodo',simulador:'simulador',plan:'plan','linea-base':'lineabase',mejoras:'mejoras',riesgo:'riesgo',plantillas:'plantillas',pedido:'pedido',documentacion:'fuentes'};
+{ const HELP={problema:'problema',solucion:'solucion','mas-alla':'masalla','ia-areas':'ia',metodo:'metodo',simulador:'simulador',plan:'plan','linea-base':'lineabase',mejoras:'mejoras',riesgo:'riesgo',plantillas:'plantillas',pedido:'pedido',documentacion:'fuentes'};
   Object.keys(HELP).forEach(sec=>{ const h=document.querySelector('#'+sec+' .sec-head'); if(!h) return; const b=document.createElement('button'); b.type='button'; b.className='ca-help'; b.innerHTML='<span>?</span>Explicar esta sección'; b.addEventListener('click',()=>CamelAssistant.start(CamelAssistant.stepOf(HELP[sec]))); h.appendChild(b); }); }
 
 /* ---------- v3: tablas apiladas, acordeones, barra de resultados y movimiento ---------- */
@@ -1616,7 +1721,7 @@ if(MOTION){
   const tio=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ tickEl(e.target); tio.unobserve(e.target); } }),{threshold:.6});
   ['#tH','#tC'].forEach(s=>tio.observe($(s)));
   // Aparición al desplazarse
-  const RV=$$('.three .card, #problema blockquote, .tbl, .callout, .grid3 > .card, .step, .phase, .bento a, .toolframe, .sec-head h2, .grid2 > .card, .grid2 > ol, .zone-label').filter(el=>!el.closest('.toolframe')||el.classList.contains('toolframe')).filter(el=>!el.closest('.hero'));
+  const RV=$$('.ia-card, .three .card, #problema blockquote, .tbl, .callout, .grid3 > .card, .step, .phase, .bento a, .toolframe, .sec-head h2, .grid2 > .card, .grid2 > ol, .zone-label').filter(el=>!el.closest('.toolframe')||el.classList.contains('toolframe')).filter(el=>!el.closest('.hero'));
   RV.forEach(el=>{ const sib=[...el.parentNode.children].filter(x=>RV.includes(x)); el.style.setProperty('--d',Math.min(5,sib.indexOf(el))*90+'ms'); el.classList.add('rv'); });
   const rio=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); rio.unobserve(e.target); } }),{rootMargin:'0px 0px -8% 0px',threshold:.08});
   RV.forEach(el=>rio.observe(el));
@@ -1625,6 +1730,8 @@ if(MOTION){
   $$('.lamp').forEach(l=>lio.observe(l));
 } else { $$('.lamp').forEach(l=>l.classList.add('in')); }
 
+/* ---------- Filtro IA en otras áreas ---------- */
+$$('#iaFilter .chip').forEach(b=> b.addEventListener('click',()=>{ const f=b.dataset.f; $$('#iaFilter .chip').forEach(x=>x.classList.toggle('on',x===b)); $$('#iaGrid .ia-card').forEach(c=>{ c.hidden = !!f && !c.dataset.t.split(' ').includes(f); }); }));
 /* ---------- Inicio ---------- */
 function renderAll(){ renderSim(); renderPlan(); }
 bindInputs(); renderFronts(); renderPlanStrats(); renderAll(); renderTpl(); renderRefs(); renderIdeas(); renderRegs(); showRefResult();
